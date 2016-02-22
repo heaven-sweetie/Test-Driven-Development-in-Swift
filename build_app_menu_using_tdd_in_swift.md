@@ -722,15 +722,15 @@ func testMenuItemPropertiesContainValuesPresentInDictionary() {
 Once again, we are using multiple assertions within a test here. The test above should pass without any code changes.
 
 <a name="displaying_menu_items"></a>
-Displaying Menu Items
+## 메뉴 아이템 표시
 =====================
 
-Now that we have a way to build `MenuItem` instances and populate them with information present in a plist, let's move our focus to displaying their content. We will be using a table view to display the menu items. As our initial design suggests, `MenuTableDefaultDataSource` will be responsible for providing a fully configured `UITableViewCell` for each menu item. The table view itself is managed by `MenuViewController`.
+이제 우리는 `MenuItem` 인스턴스를 빌드하는 방법과 plist의 정보들로 부터 채울 수 있는 방법을 알고있다. 그럼 컨텐츠를 보여주는 것으로 초점을 옮겨보자. 우리는 테이블뷰를 이용해 메뉴 아이템들을 보여줄 것이다. 우리의 초기 설계 알 수 있듯이, `MenuTableDefaultDataSource` 는 철저히 설정된 각각의 `UITableViewCell` 메뉴 아이템에서 제공되는 정보를 응답할 것이다. 테이블뷰 자체는 `MenuViewController`에 의해 관리된다. 
 
 <a name="providing_data_to_table_view"></a>
-### Providing Data to Table View
+### 테이블뷰에 데이터 제공
 
-We will use a separate object as a data source for the table view instead of giving `MenuViewController` that responsibility. `MenuViewController` is already reponsible for managing the views. I would hate to violate the [Single Responsibility Principle](http://www.objectmentor.com/resources/articles/srp.pdf) by also making it prepare data for the table view. But first we will create a protocol that `MenuTableDefaultDataSource` will conform to. Create a new Swift file named `MenuTableDataSource.swift` in *AppMenu* group. Add it to both targets and replace its content with following:
+우리는 테이블뷰의 데이터소스를 `MenuViewController`에 직접 구현을 하기 보다  분리된 객체를 사용할 것이다. `MenuViewController` 는 이미 뷰들을 관리하는 역할을 하고 있습니다. 나는 테이블뷰의 데이터를 미리 준비해서 [단일 책임 원칙](http://www.objectmentor.com/resources/articles/srp.pdf)을 위반하는 것을 피할 것이다. 그러나 첫번 째로 우리는 `MenuTableDefaultDataSource`에 일치하는 프로토콜을 만들것 이다. `MenuTableDataSource.swift`라는 스위프트 파일 파일을 *AppMenu* 그룹에 새로만들고. 파일의 타겟을 추가한 뒤 아래의 코드로 변경한다.
 
 ~~~swift
 import UIKit
@@ -740,7 +740,7 @@ protocol MenuTableDataSource : UITableViewDataSource {
 }
 ~~~
 
-`MenuTableDataSource` is a protocol that inherits from `UITableViewDataSource`. It also introduces a required method named `setMenuItems`. Now we are ready to write tests for `MenuTableDefaultDataSource`. Create a new test file named `MenuTableDefaultDataSourceTests.swift` in `AppMenuTests` target and replace its content with following.
+`MenuTableDataSource`는 `UITableViewDataSource` 로 부터 상속된 프로토콜이다. 또한 `setMenuItems` 메소드를 필수로 요구하고 있다. 이제 우리는 `MenuTableDefaultDataSource`의 테스트 작성이 준비됐다. `AppMenuTests` 타겟 안에서 `MenuTableDefaultDataSourceTests.swift` 라는 새로운 테스트 파일을 생성하고 다음의 코드를 추가한다.
 
 ~~~swift
 import UIKit
@@ -764,7 +764,7 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
 }
 ~~~
 
-Here we are verifying that the data source creates one table view cell instance for each menu item. Now create a new Swift file named `MenuTableDefaultDataSource.swift` and replace its content with the code below.
+여기서 우리는 각각의 메뉴 아이템 데이터 소스가 하나의 데이블뷰 셀 인스턴스를 만들고 있다는 것을 확인했다. 이제 `MenuTableDefaultDataSource.swift` 라는 새로운 스위프트 파일을 만들고 아래의 코드를 입력한다.
 
 ~~~swift
 import Foundation
@@ -793,11 +793,11 @@ class MenuTableDefaultDataSource : NSObject, MenuTableDataSource {
 }
 ~~~
 
-Although we haven't written tests for `tableView:cellForRowAtIndexPath:` method yet, we need to implement it in order to run the previous test. It happens to be a required method in `UITableViewDataSource` protocol and Swift won't compile `MenuTableDefaultDataSource` without it. 
+아직 우리는 테스트를 위한 `tableView:cellForRowAtIndexPath:` 메소드를 아직 작성하지 않았다. 우리는 요청에 대해 동작할 수 있는 구현이 테스트 이전에 필요하다. 이 작업은 `UITableViewDataSource` 프로토콜에서 요구하는 메소드가 있어야 하고 스위프트는 `MenuTableDefaultDataSource` 없이 컴파일을 할 수 없기 때문이다.
 
-One other thing you might have noticed about `MenuTableDefaultDataSource` is that it inherits from `NSObject`. The reason for that is in order to conform to `UITableViewDataSource` protocol, it needs to conform to `NSObject` protocol as well. An easy way to accomplish that is by making it a subclass of `NSObject` which already conforms to the `NSObject` protocol.
+혹시 `MenuTableDefaultDataSource` 에 대하여 알아 차렸을 수도 있겠지만 이것은 `NSObject` 를 상속받고 있다. 그 이유는 `UITableViewDataSource` 프로토콜과 일치하기 위해, 또한 `NSObject` 프로토콜을 준수할 필요가 있기 때문이다. 이것을 가장 쉽게 따르는 방법으로는 `NSObject` 프로토콜을 준수 하는 `NSObject` 의 서브클래스를 만드는 것이다.
 
-In above test, we are cheating by returning `1` from `tableView:numberOfRowsInSection:` method. Add one more test to verify that the data source always returns correct number of rows no matter how many menu items are present.
+위의 테스트에서, 우리는 `tableView:numberOfRowsInSection:` 메서드에서 무조건 `1` 을 반환하도록 만들었다. 데이터 소스가 얼마나 많은 메뉴 아이템이 있든 항상 정확한 수를 반환하는지 증명하는 테스트를 추가한다.
 
 ~~~swift
 func testReturnsTwoRowsForTwoMenuItems() {
@@ -817,7 +817,7 @@ func testReturnsTwoRowsForTwoMenuItems() {
 }
 ~~~
 
-Return `menuItems`'s actual count instead of a hard-coded value of `1` to make the above test pass.
+`menuItems` 는 테스트를 통과하기 위해 하드코딩된 `1` 대신 실제 카운트 값을 반환한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -828,7 +828,7 @@ func tableView(tableView: UITableView!,
 }
 ~~~
 
-We also need to make sure that the data source returns correct number of sections. Here is a test for that:
+또한 우리는 데이터소스가 정확한 섹션의 갯수를 반환하는지 확인이 필요하다. 여기 그것에 대한 테스트이다:
 
 ~~~swift
 func testReturnsOnlyOneSection() {
