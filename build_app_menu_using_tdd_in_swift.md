@@ -1319,7 +1319,7 @@ func didSelectMenuItemNotification(notification: NSNotification?) {
 Sliding Views In
 ================
 
-When a menu item is tapped, we need to display a view. But which one? How about we ask the menu item itself? To keep things simple, let's store the view controller's name in `tapHandlerName` property in `MenuItem`.
+menu item이 눌렸을 때 view가 보여져야 한다. 하지만 어떤것? menu item에 직접 물어보는 건 어떨까? 단순함을 유지하기 위해 view controller의 이름을 `MenuItem`에 `tapHandlerName` property 로 저장하자.
 
 ~~~swift
 class MenuItemTests: XCTestCase {
@@ -1342,7 +1342,7 @@ class MenuItem {
 }
 ~~~
 
-It's perfectly fine for a menu item to not have a tap handler. Therefore, we should make the `tapHandlerName` property an optional. Now that we have added an additional property to `MenuItem`, we need to adjust `menuItems.plist`, `FakeMenuItemsReader`, `MenuItemsPlistReaderTests`, `MenuItemBuilderTests`, and `MenuItemBuilder`. The adjusted code is listed below.
+이것은 menu item이 tap handler를 갖지 않을 좋을 방법이다. Therefore, `tapHandlerName` property를 optional로 만들어야 한다.  이제 `MenuItem`에 property를 추가하고 `menuItems.plist`, `FakeMenuItemsReader`, `MenuItemsPlistReaderTests`, `MenuItemBuilderTests`, 그리고 `MenuItemBuilder`를 맞추자. 조정된 코드는 아래에 나열되어 있다.
 
 ~~~xml
 <!--menuItems.plist-->
@@ -1477,7 +1477,7 @@ class MenuItemBuilder {
 }
 ~~~
 
-Next up we need to make sure that `MenuViewController` displays the correct view when a menu item is tapped. Following tests will do just that.
+다음으로 menu item이 눌렸을 때 `MenuViewController`가 맞는 view를 보여주도록 해야한다. 다음 test가 그렇게 할 것이다.
 
 ~~~swift
 class MenuViewControllerTests: XCTestCase {
@@ -1544,7 +1544,7 @@ class MenuViewControllerTests: XCTestCase {
 }
 ~~~
 
-Let's make `MenuViewController` push the right view controller into app navigation stack.
+`MenuViewController`를 app navigation stack의 오른쪽 view controller로 push하도록 만들자
 
 ~~~swift
 class MenuViewController: UIViewController {
@@ -1587,15 +1587,15 @@ class MenuViewController: UIViewController {
 }
 ~~~
 
-We also need to create tap handler classes. Create following view controllers and add them to both *AppMenu* and *AppMenuTests* targets. Don't forget to also create a *XIB* file for each one of them.
+또한 tap handler class들을 만들어야 한다. 다음의 view controller를 만들고 각각에 *AppMenu* and *AppMenuTests* target을 추가한다. 각각을 위한 *XIB* 파일을 만드는 것 또한 잊지 말자.
 
 * `ContributionsViewController`
 * `RepositoriesViewController`
 * `PublicActivityViewController`
 
-You might be wondering why we didn't create view controllers listed above during runtime instead of using the switch case statement. Two reasons:
+switch case 문을 사용하는 대신에 runtime에 view controller를 만들지 않는지 궁금할 것이다.
 
-* I am not quite sure what's the best way to do that in Swift. In Objective-C you could easily accomplish that with following code.
+* 나는 Swift에서 가장 좋은 방법이 무엇인지 확신할 수 없다. Objective-C에서는 다음의 code에서와 같이 쉽게 할 수 있다.
 
   ~~~Obj-C
     UIViewController *tapHandler = nil;
@@ -1607,9 +1607,9 @@ You might be wondering why we didn't create view controllers listed above during
     }
   ~~~
 
-* Unlike Objective-C, Swift requires you to specify which XIB file to use when you create an instance of a view controller even though the XIB name is the same as the view controller's class name. Therefore, simply calling the `alloc`, `init` equivalent in Swift isn't sufficient.
+* Objective-C와는 다르게, Swift는 XIB의 이름과 view controller의 이름이 같더라도 view controller의 instance를 만들 때, XIB를 지정해야 한다. 게다가, 간단히 `alloc`, `init`으로 부르는 기능은 Swift에서는 필요하지 않다.
 
-Unfortunately, that still doesn't make the tests pass. It turns out that so far we have built every class we initially set out to build except `AppMenuManager`. Once that class is built, we should be in a position to make above tests pass. Let's get to it.
+불행히도, test들을 통과하게 하진 못한다. 모든 class에 드러내다. It turns out that so far we have built every class we initially set out to build except `AppMenuManager`. 그 class가 만들어지면 위의 test를 통과할 수 있어야 한다. 해보자.
 
 <a name="managing_app_menu"></a>
 ### Managing App Menu
