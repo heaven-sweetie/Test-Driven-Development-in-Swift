@@ -839,7 +839,7 @@ func testReturnsOnlyOneSection() {
 }
 ~~~
 
-Return `1` from `numberOfSectionsInTableView` method to make previous test pass. Although this method is not required by `UITableViewDataSource` protocol and the default implementation already returns `1`, we need to implement it in order to be able to call it from the test.
+`numberOfSectionsInTableView` 메서드로부터 리턴되는 `1` 은 이전 테스트의 통과를 시키기 위해 만들었다. 또한 이 메서드는 `UITableViewDataSource` 프로토콜에서 필수로 요구되는 메서드는 아니다. 그리고 기본적으로 이미 `1` 이 리턴되고 있다. 우리는 테스트로 부터 명령이 가능한 호출에 대해 구현이 필요하다.
 
 ~~~swift
 func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
@@ -847,9 +847,9 @@ func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
 }
 ~~~
 
-> One other test I would have liked to write is to verify that the data source throws an exception if asked for number of rows in a section whose index is anything other than 0. However, I couldn't find our old friend `XCTAssertThrows` in Xcode 6 version of XCTest. I don't know how else to verify that an exception was thrown.
+> 또 다른 테스트로 검증을 위해 작성하기 좋은것으로 데이터소스로 부터 예외처리를 발생시키는 것이다. 섹션안에 행의 숫자 인덱스를 0이 아닌 다른숫자로 입력하라고 묻는것 이라면, 하지만 우리의 오래된 친구 `XCTAssertThrows` 를 Xcode 6의 XCTest에서는 찾을 수 없다. 그래서 예외상황이 발생된 상황을 다르게 증명하는 방법을 모르겠다.
 
-Testing every aspect of a view could turn out to be tedius on iOS. I tend to test at least the semantics behind a view. By that I mean test what a view should represent. In this case, each table view cell represents a menu item. Therefore, I would at least like to verify that a cell displays the title from a respective menu item. Here is what that test looks like:
+iOS에서 모든 뷰의 테스트를 하는건 상당히 지루할 수 있다. 나는 최소의 뷰만 테스트하는 경향이 있다. 이말은 대표적인 뷰들만 테스트를 하는것인데, 이 경우에는 각각의 메뉴를 대표하는 테이블뷰 셀만 테스트를 하는것이다. 그러므로, 나는 각각의 메뉴 아이템으로 부터의 대표적인 셀만 증명하는 것을 선호한다. 아래의 코드를 참고하자.
 
 ~~~swift
 func testEachCellContainsTitleForRespectiveMenuItem() {
@@ -867,7 +867,7 @@ func testEachCellContainsTitleForRespectiveMenuItem() {
 }
 ~~~
 
-Following changes to `tableView:cellForRowAtIndexPath:` method should make the previous test pass.
+`tableView:cellForRowAtIndexPath:` 메서드는 이전에 테스트가 통과되도록 변경해야 한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -887,7 +887,7 @@ func tableView(tableView: UITableView!,
 }
 ~~~
 
-Let's refactor the tests for `MenuTableDefaultDataSource` we have written so far by extracting the common code into `setup` method.
+`MenuTableDefaultDataSource` 테스트를 위한 리팩토링을 해보자. 우리는 예전에 `setup` 메서드에서 공통 코드를 추출했었다.
 
 ~~~swift
 import UIKit
@@ -952,13 +952,13 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
 ~~~
 
 <a name="handling_menu_item_tap_event"></a>
-### Handling Menu Item Tap Event
+### Handling Menu Item Tap Event (메뉴 아이템 탭 이벤트 핸들링)
 
-As it turns out our table view setup is fairly simple. Therefore, it makes sense to use the same object as a data source and a delegate. When a table view cell is tapped, the data source will post a notification. `MenuViewController` (or any other class that is interested in that notification) can then query the notification to find out which cell was tapped and take appropriate action.
+테이블뷰 설정은 보는것과 같이 굉장히 간단하다. 그러므로, 데이터소스나 델리게이트 같은 오브젝트의 사용도 이해가 될것이다. 테이블 뷰의 셀이 탭될때 데이터소스는 알림을 보낼 것이다. `MenuViewController` (또는 관심이 있는 다른 클래스) 는 어떤 셀이 탭이 되었고 어떤 액션을 받을 것인지 찾기위해 신호를 보낼 수 있다.
 
 [![table_view_architecture.png](https://d23f6h5jpj26xu.cloudfront.net/9pmnjzuddxpv3g.png)](http://img.svbtle.com/9pmnjzuddxpv3g.png)
 
-This design is somewhat inspired by chapter 9 from [Test-Driven iOS Development](http://goo.gl/iiKpC1) book. Let's add the delegate related details to `MenuTableDataSource` protocol.
+이 디자인은 [Test-Driven iOS Development](http://goo.gl/iiKpC1) 책의 챕터 9로 부터 약간의 영감을 받았다. 그럼 `MenuTableDataSource` 프로토콜에 델리게이트와 관련된 세부항목을 추가하자.
 
 ~~~swift
 import UIKit
@@ -971,7 +971,7 @@ protocol MenuTableDataSource : UITableViewDataSource, UITableViewDelegate {
 }
 ~~~
 
-Now we need to verify that the data source indeed posts a notification when a menu item is tapped. Following tests will do that.
+이제 우리는 데이터소스가 정말로 테이블뷰의 아이템이 탭되었을 때 알림을 보내는지 알수 있는 증명이 필요하다. 다음과 같이 테스트해볼 것이다.
 
 ~~~swift
 class MenuTableDefaultDataSourceTests: XCTestCase {
@@ -1028,12 +1028,12 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
     // Previous tests for data source are excluded here...
 }
 ~~~
+ 
+`setup` 메서드 안에서, 우리는 `MenuTableDataSourceDidSelectItemNotification` 라는 이름의 노티피케이션 옵져버를 테스트 클래스에 추가했었다. 알림이 도착할 때, `didReceiveNotification:` 메서드는 호출될 것이다. 노피티케이션 오브젝트는 `postedNotification` 변수에 저장된다. 그때 우리는 이것이 정확한 이름과 메뉴 아이템 인스턴스라는 것이 증명된다. 여기서 중요하게 생각해야 할 점은 `tearDown` 메서드 안에 옵져버가 테스트 클래스를 지운다는 것이다. 우리는 [NSNotificationCenter](http://goo.gl/TfnJ3T) 에서 노티피케이션이 보내졌을때 확인 할 수 있는 API를 제공하지 않기 때문에 이 복잡한 프로세스를 통해서 노티피케이션이 정말로 보내지는지 증명할 수 있었다. 
 
-In `setup` method, we added the test class to be an observer for a notification with name `MenuTableDataSourceDidSelectItemNotification`. When that notification arrives, `didReceiveNotification:` method should get called. The notification object passed to that method is stored in `postedNotification` variable. Then we verify that it has the correct name and menu item instance. It is important that the test class is removed as an observer in `tearDown` method. We go through this complex process to verify that a notification is indeed posted because [NSNotificationCenter](http://goo.gl/TfnJ3T) doesn't provide an API to query if a notification has been posted to it.
+> [Building Menu Items](#building_menu_items) 섹션 안에서 나는 가짜 오브젝트를 사용하는 것을 추천한다. 그러나, 나는 위에 테스트에서 `NSNotificationCenter` 클래스를 사용했다. 일반적으로 나는 애플 프레임워크에서 제공되는 오브젝트의 대체되는 다른것을 사용하지 않는다. 그들은 신뢰할 수 있는 용어와 속도를 공평하게 한다. 그 들이 말하기를 만약 당신의 테스트에서 애플 프레임워크로 부터 제공하는 객체의 사용이 줄어든다면 그들을 위해서 테스트를 대체하기 위한 다른걸 만드는 것을 주저하지 않을 것이다.
 
-> In [Building Menu Items](#building_menu_items) section I recommended that we use fake objects in tests. However, I am using `NSNotificationCenter` class straight up in above tests. Generally, I don't use stand-ins for objects provided by Apple frameworks. They are fairly reliable in terms of stability and speed. That being said, if it turns out that the reliability of your tests are going down due to the use of real objects provided by Apple frameworks, don't hesitate to create test replacements for them.
-
-Implement `tableView:didSelectRowAtIndexPath:` method from `UITableViewDataSource` protocol in `MenuTableDefaultDataSource` class to make above tests pass.
+`MenuTableDefaultDataSource` 클래스 안에서 `UITableViewDataSource` 프로토콜로 부터 `tableView:didSelectRowAtIndexPath:` 메서드가 테스트를 통과 하도록 구현한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -1050,9 +1050,9 @@ func tableView(tableView: UITableView!,
 ~~~
 
 <a name="managing_menu_table_view"></a>
-### Managing Menu Table View
+### Managing Menu Table View (메뉴 테이블 뷰 관리)
 
-`MenuViewController` will be responsible for managing the table view and any other views that might need to be createed in order to present the menu. The first thing we need to make sure is that we can give it a data source. We also need to ensure that it has a title and a table view. Create a new test file named `MenuViewControllerTests.swift` and replace its content with following tests.
+`MenuViewController` 는 테이블뷰와 메뉴에서 보여줄 모든 필요한 뷰들을 관리하는 역할을 할 것이다. 첫번째로 우리는 필요한 데이터소스를 만들야 한다. 또한 테이블뷰와 타이틀이 확실히 필요하다. 새로운 테스트 파일 `MenuViewControllerTests.swift` 을 만들고 아래의 내용을 추가한다.
 
 ~~~swift
 import UIKit
@@ -1091,7 +1091,7 @@ class MenuViewControllerTests: XCTestCase {
 }
 ~~~
 
-Instead of using a real data source object here, we are using a fake one named `MenuTableFakeDataSource`. Create a new Swift file named `MenuTableFakeDataSource.swift` in `AppMenuTests` target and replace its content with following.
+여기에 실제 데이터 소스를 사용하는 것 대신에, 우리는 `MenuTableFakeDataSource` 라는 이름의 가짜 데이터를 사용할 것이다. `AppMenuTests` 안에 `MenuTableFakeDataSource.swift` 라는 이름의 스위프트 파일을 생성하고 타겟을 정하고 다음의 코드로 대체한다.
 
 ~~~swift
 import Foundation
@@ -1119,7 +1119,7 @@ class MenuTableFakeDataSource : NSObject, MenuTableDataSource {
 }
 ~~~
 
-All `MenuTableFakeDataSource` does is provide stub implementation of all the required methods in `MenuTableDataSource` protocol so that it can stand in for any object that conforms to `MenuTableDataSource`. Now create `MenuViewController` class (*Right click AppMenu group > New File > iOS > Source > Cocoa Touch Class*). Make it a subclass of `UIViewController` and select the *Also create XIB file* checkbox. Don't forget to add it to both targets. The tests above should pass just by declaring two properties and assigning a title.
+모든 `MenuTableFakeDataSource` 은 `MenuTableDataSource` 프로토콜 안의 필요 메서들 구현을 요구한다. 그리고 `MenuTableDataSource` 에 일치하는 모든 객체들을 대신한다. 지금 `MenuViewController` 클래스를 생성한다. (*AppMenu 그룹을 오른쪽으로 클릭 > New File > iOS > Source > Cocoa Touch Class*). `UIViewController` 의 서브클래스로 생성한다 그리고 *Also create XIB file* 체크박스도 선택한다. 그리고 절대 타겟을 두개다 추가하는 것을 잊지말자. 이 작업은 위의 선언된 두개의 구역과 타이틀을 선정하기 위한 테스트를 통과 하기 위함이다.
 
 ~~~swift
 import UIKit
@@ -1135,9 +1135,9 @@ class MenuViewController: UIViewController {
 }
 ~~~
 
-Change the size of main view in `MenuViewController.xib` to *iPhone 4-inch* from *Simulated Metrics* section in *Attributes Inspector*. Set the view's orientation to *Portrait*. After that add a table view as the main view's subview. Connect the table view in XIB to the `tableView` outlet in `MenuViewController` class.
+`MenuViewCOntroller.xib` 의 메인뷰 사이즈는 *Attricbutes Inspector* 섹션 안에서 *Simulated Metrics* 을 *iPhont 4-inch* 로 변경한다. 뷰의 오리엔테이션은 *Portrait* 로 설정한다. 메인 뷰의 서브뷰, 테이블뷰 같은 뷰들을 추가한 후에. `MenuViewController` 클래스의 `tableView` 아울렛을 XIB의 테이블뷰와 연결한다.
 
-Next we need to make sure that `MenuViewController` sets the table view's delegate and dataSource properties to the data source object we assigned to it. [viewDidLoad](http://goo.gl/OeT0hV) method is where we want it to make that connection. Following tests should ensure that.
+다음으로 우리는 `MenuViewController` 의 델리게이트와 데이터소스 영역들에 대한 설정들을 우리가 정한 데이터 소스 객체로 지정해야 한다. [viewDidLoad](http://goo.gl/OeT0hV) 메서드는 우리가 원하는 연결을 정할 수 있는 곳이다. 다음 테스트를 코드를 확인하자.
 
 ~~~swift
 func testTableViewIsGivenADataSourceInViewDidLoad() {
@@ -1153,6 +1153,8 @@ func testTableViewIsGivenADelegateInViewDidLoad() {
 }
 ~~~
 
+위의 테스트를 통과 시키기 위해 `viewDidLoad` 안에서 테이블뷰의 데이터소스와 델리게이트를 연결한다.
+
 Set table view's data source and delegate properties in `viewDidLoad` to make above tests pass.
 
 ~~~swift
@@ -1164,7 +1166,7 @@ override func viewDidLoad() {
 }
 ~~~
 
-In [Handling Menu Item Tap Event](#handling_menu_item_tap_event) we made `MenuTableDefaultDataSource` post a notification when a menu item is tapped. `MenuViewController` needs to listen to that notification in order to show a correct view for that menu item. If that notification arrives when `MenuViewController`'s view is hidden, it should ignore it. Therefore, it should register for that notification in `viewDidAppear:` method. It should also stop listening for that notification in `viewDidDisappear:` method. Let's capture that requirement through tests.
+[Handling Menu Item Tap Event](#handling_menu_item_tap_event) 에서 우리는 메뉴 아이템을 탭했을 때  `MenuTableDefaultDataSource` 가 노티피케이션을 보내는 것을 만들었었다. `MenuViewController` 는 노티피케이션을 받아서 정확한 메뉴 아이템의 뷰인지 확인할 수 있는 것이 필요하다. 만약 그 노티피케이션이 도착했는데 `MenuViewController` 의 뷰가 감춰져 있다면, 그건 무시될 것이다. 그러므로, `viewDidAppear:` 메서드에서 노티피케이션을 등록해야한다. 또한 `viewDidDisaapear:` 메서드 안에서 해체를 해주어야 한다. 다음의 테스트를 통해서 요구하는 것을 확인하자.
 
 ~~~swift
 let postedNotification = "MenuViewControllerTestsPostedNotification"
@@ -1255,7 +1257,7 @@ extension MenuViewController {
 }
 ~~~
 
-That is a lot of code. Let me explain. In order to verify that `MenuViewController` registers itself to listen for `MenuTableDataSourceDidSelectItemNotification`, we need to somehow get hold of the method that gets called when that notification arrives. Once we get hold of it, we need to capture the notification passed to that method and verify its existence. We could simply make a non-private property for that notification in `MenuViewController`, but I don't like that approach. `MenuViewController` shouldn't be forced to expose something just because tests need it. There has to be a better way. How about we [swizzle](http://nshipster.com/method-swizzling/) the notification handler during runtime by providing a different implementation that is suited for our testing purpose? Following code will do just that.
+굉장히 많은 코드가 있는데, 설명을 하자면. `MenuViewController` `MenuTableDataSourceDidSelectItemNotification` 의 호출을 받기 위해 자기 자신을 등록했다. 우리는 노티피케이션이 도착했을 때 우리가 원하는 메서드를 어떻게 호출할 것인지 알아야 한다. 이것은 한번만 받을 수 있어서, 노티피케이션이 메서드를 통과할 때 실체를 알수 있는 검증이 필요하다. 간단하게 비 개인화 속성으로 `MenuViewController` 안에 노티피케이션을 만들 것이다. 그러나 개인적으로 이 접근 방법을 좋아하진 않는다. `MenuViewController` 는 단지 테스트를 위해서 강제로 노출되지 않아야 한다. 여기에 더 좋은 방법이 있다. 우리는 어떻게 [swizzle](http://nshipster.com/method-swizzling/) 노티피케이션 핸들러를 런타임에서 각자 다르게 요구되는 구현을 테스트의 목적에 맞게 사용할 수 있을까? 다음 코드를 보자.
 
 ~~~swift
 func swizzleNotificationHandler() {
@@ -1275,7 +1277,7 @@ func swizzleNotificationHandler() {
 }
 ~~~
 
-And here is the [extension](http://goo.gl/lL1Cwy) for `MenuViewController` class that provides the test implementation:
+그리고 여기에 `MenuViewController` 클래스를 테스트 구현에 요구되는 대로 [extension](http://goo.gl/lL1Cwy) 하였다.
 
 ~~~swift
 extension MenuViewController {
@@ -1290,9 +1292,9 @@ extension MenuViewController {
 }
 ~~~
 
-All we are doing here is assign the notification to `postedNotification` constant so that we can evaluate it in tests. In `testRegistrationForMenuItemTappedNotificationHappensInViewDidAppear` after we swizzle the notification handler, we call `viewDidAppear`, post a notification and verify that `postedNotification` is not nil. Whereas in `testRemovesItselfAsListenerForMenuItemTappedNotificationInViewDidDisappear`, we first call `viewDidAppear` so that `MenuViewController` registers for the notification. After that we call `viewDidDisappear` and post a notification. This notification shouldn't reach to `MenuViewController` as we expect it to remove itself as an observer from `NSNotificationCenter` in `viewDidDisapper` method.
+우리는 여기에 테스트안에서 측정할 수 있는 `postedNotification` 을 지속적으로 받기 위한 노티피케이션 등록을 모두했다. `testRegistrationForMenuItemTappedNotificationHappensInViewDidAppear` 안에서 swizzle 노티피케이션 핸들러를 등록한 후에 `viewDidAppear` 를 호출하고, nil 이 아닌 `postedNotificiation` 을 노티피케이션과 검증을 위해 보냈다. 반면 `testRemovesItselfAsListenerForMenuItemTappedNotificationInViewDidDisappear` 에서는 먼저 `viewDidAppear` 를 호출하고 `MenuViewController` 에 노티피케이션을 등록했다. 이 노티피케이션은 `viewDidDisappear` 안에서 자신을 옵져버를 제거한다. 이는 노티피케이션이 `MenuViewController` 에서 `viewDidDisappear` 호출된 후에도 노티피케이션을 받을 수 있기 때문이다.
 
-To make the tests pass, all we need to do is register and unregister for the notification in proper places.
+테스트들을 통과하기 위해선 우리는 모두 노티피케이션의 등록과 해제 적절한 곳에서 해야한다.
 
 ~~~
 override func viewDidAppear(animated: Bool) {
