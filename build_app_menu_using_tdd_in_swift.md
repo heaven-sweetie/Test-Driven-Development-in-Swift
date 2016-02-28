@@ -1614,9 +1614,9 @@ switch case 문을 사용하는 대신에 runtime에 view controller를 만들�
 불행히도, test들을 통과하게 하진 못한다. 모든 class에 드러내다. It turns out that so far we have built every class we initially set out to build except `AppMenuManager`. 그 class가 만들어지면 위의 test를 통과할 수 있어야 한다. 해보자.
 
 <a name="managing_app_menu"></a>
-### Managing App Menu
+### App Memu 관리하기
 
-Create a new test file named `AppMenuManagerTests.swift` in *AppMenuTests* target. Add following tests to it.
+*AppMenuTests* target안에 file name이 `AppMenuManagerTests.swift`인 새로운 test 파일을 만든다. 다음의 test를 추가한다.
 
 ~~~swift
 import UIKit
@@ -1694,7 +1694,7 @@ class AppMenuManagerTests: XCTestCase {
 }
 ~~~
 
-`AppMenuManager` is responsible for creating `MenuViewController` if `MenuItem` objects were created successfully from the metadata. If not, it just returns nil. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*](#building_menu_items), but it doesn't provide a way for us to set the error. Let's take care of that.
+metadata로부터 성공적으로 `MenuItem` object가 만들어진 경우 `AppMenuManager`는 `MenuViewController`를 만들 책임이 있다. 그렇지 못할 경우 nil을 반환한다. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*](#building_menu_items), but it doesn't provide a way for us to set the error. Let's take care of that.
 
 ~~~swift
 class FakeMenuItemsReader : MenuItemsReader {
@@ -1722,7 +1722,7 @@ class FakeMenuItemsReader : MenuItemsReader {
     // ...
 ~~~
 
-Next we need to create `FakeMenuItemBuilder` class. Now that there is going to be more than one class playing the role of a menu item builder, we should create a protocol to make it clear what it means for a class to become a menu item builder. For now, playing that role means implementing `buildMenuItemsFromMetadata` method correctly. Listed below is the new protocol.
+다음으로 `FakeMenuItemBuilder`class를 만들어야 한다. Now that there is going to be more than one class playing the role of a menu item builder, we should create a protocol to make it clear what it means for a class to become a menu item builder. For now, playing that role means implementing `buildMenuItemsFromMetadata` method correctly. 아래는 새로운 protocol이다.
 
 ~~~swift
 import Foundation
@@ -1732,7 +1732,7 @@ protocol MenuItemBuilder {
 }
 ~~~
 
-Wait a minute. Didn't we already name our real builder class `MenuItemBuilder`? Yes we did. `MenuItemBuilder` name is better suited for a protocol. Let's rename the original builder class to `MenuItemDefaultBuilder`.
+잠깐만. Didn't we already name our real builder class `MenuItemBuilder`? 그렀다, 했다. `MenuItemBuilder` 이름은 protocol에 더 적합하다. 원래의 builder class의 이름을 `MenuItemDefaultBuilder`로 바꾸자.
 
 ~~~swift
 import Foundation
@@ -1779,7 +1779,7 @@ class MenuItemDefaultBuilder : MenuItemBuilder {
 }
 ~~~
 
-We also need to adjust tests to use the new name.
+또한 새로운 이름을 사용하도록 test를 조정해야 한다.
 
 ~~~swift
 class MenuItemDefaultBuilderTests: XCTestCase {
@@ -1818,7 +1818,7 @@ class MenuItemDefaultBuilderTests: XCTestCase {
 }
 ~~~
 
-Finally, here is what the `FakeMenuItemReader` class looks like. You don't need to add this class to the *AppMenu* target since it's only used in tests.
+마지막으로, here is what the `FakeMenuItemReader` class looks like. 오직 test에서만 사용하기 때문에 *AppMenu* target에 추가할 필요는 없다.
 
 ~~~swift
 import Foundation
@@ -1837,7 +1837,7 @@ class FakeMenuItemBuilder : MenuItemBuilder {
 }
 ~~~
 
-It makes the metadata passed to it available for inspection. It also allows us to set the error and menu items we want it to return which is very convenient. Now we are ready to build the `AppMenuManager` class. Here is what it looks like.
+It makes the metadata passed to it available for inspection. It also allows us to set the error and menu items we want it to return which is very convenient. `AppMenuManager` class를 build할 준비가 되었다. Here is what it looks like.
 
 ~~~swift
 import Foundation
@@ -1902,9 +1902,9 @@ class AppMenuManager {
 }
 ~~~
 
-I apologize for not staying true to the *read-green-refactor* cycle here. I wanted to focus more on important techniques that make writting tests a bit easier rather than showing you every single step in the process. One of those techniques is creating fake (or test double) objects that play the same role as the real objects so that we can easily swap them to make our tests more maintainable. Speaking of fake objects, [Martin Fowler](http://martinfowler.com/) has written a [great post](http://martinfowler.com/articles/mocksArentStubs.html) on the topic.
+여기에서 *read-green-refactor* cycle을 따르지 않는 것을 사과한다. I매 단계 진행하는 절차를 보여주는 것보다 test를 보다 쉽게 작성하는 중요한 테크닉에 집중하길 원했다. 이러한 테크닉 중 하나는 test를 유지하면서 쉽게 그것들을 바꿀 수 있도록 실제 object와 동일한 역할을 하는 가짜(또는 테스트를 위한) object를 만든 것이다. 가짜 object에 대해서 [Martin Fowler](http://martinfowler.com/)가 쓴 [좋은 게시물](http://martinfowler.com/articles/mocksArentStubs.html)이 있다.
 
-Before we move on, I would like to emphasize the importance of [Dependency Injection](http://www.martinfowler.com/articles/injection.html) in writing testable and reusable classes. Our `AppMenuManager` class needs to work with two other classes that conform to `MenuItemsReader` and `MenuItemBuilder` protocols to successfully create `MenuItem` objects. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
+넘어가기 전에, 테스트할 수 있고 재사용할 수 있는 class들을 작성하는데 [Dependency Injection](http://www.martinfowler.com/articles/injection.html)의 중요성에 대해 강조하고 싶다. 우리의 `AppMenuManager` class는 `MenuItem` object를 만들기 위해 `MenuItemsReader`과 `MenuItemBuilder` protocol을 따르는 두 개의 다른 class들의 함께 동작해야 한다. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
 
 <a name="putting_it_all_together"></a>
 Putting It All Together
