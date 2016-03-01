@@ -2380,17 +2380,17 @@ Let's run the app (*Product > Run* or ⌘R). When each menu item is tapped, the 
 [![final_app_design.png](https://d23f6h5jpj26xu.cloudfront.net/3fmqoko8psjlrw.png)](http://img.svbtle.com/3fmqoko8psjlrw.png)
 
 <a name="conclusion"></a>
-Conclusion
+결말
 ===========
 
-In this post we learned how to build a simple iOS app using TDD. Although Xcode 6 beta is a bit unstable as of this writing, XCTest itself seems to be quite stable. Despite the lack of mocking libraries such as [OCMock](http://ocmock.org/) and [Kiwi](https://github.com/kiwi-bdd/Kiwi), we were able to create fake objects easily and use them in our tests. Swift's ability to create classes inside a method came very handy while creating specialized fake objects quickly.
+이 post에서 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock](http://ocmock.org/)과 [Kiwi](https://github.com/kiwi-bdd/Kiwi) 같은 mocking library들의 부족에도 불구하고, fake object를 쉽게 만들고 그것을 test에 사용하는 것이 가능했다. Swift의 method 내부에서 class를 만드는 능력은 전문적인 가짜 object를 빠르게 만드는데 편리했다.
 
-Although Swift is a completely new language, the techniques you might have learned for testing features in Objective-C (or any other language for that matter) in the past are still applicable to Swift. We only scratched the surface of Test-Driven Development in this post. I encourage you to read the reference material listed in [Further Reading](#further_reading) section below for an in-depth examination of TDD. Hopefully, you will give TDD a try with your next iOS app. The only way to get better at designing (and testing) is by doing more of it.
+Swift는 완전히 새로운 언어임에도 불구하고, 이미 배웠던 Objective-C(또는 그 문제를 위한 어떤 다른 언어)에서의 test 기능을 위해 배웠을 기술들도 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리](#further_reading) section의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. design(그리고 test)에서 더 좋게 하는 유일한 방법은 그것을 더욱 많이 하는 것이다.
 
-The finished project is available on [Github](https://github.com/pawanpoudel/AppMenu).
+완성된 project는 [Github](https://github.com/pawanpoudel/AppMenu)에서 있다.
 
 <a name="further_reading"></a>
-Further Reading
+더 읽을거리
 ===============
 
 * [XCTest​Case / XCTest​Expectation / measure​Block()](http://nshipster.com/xctestcase/)
