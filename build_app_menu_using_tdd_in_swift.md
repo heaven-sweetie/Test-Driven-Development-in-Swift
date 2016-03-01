@@ -1910,7 +1910,7 @@ class AppMenuManager {
 Putting It All Together
 =======================
 
-We are almost there. Now that we have built every class, let's put them together in `AppDelegate`. But first we will write some tests to verify that  `AppDeleate` behaves as expected. Create a new test file named `AppDelegateTests.swift` in *AppMenuTests* target. Add following tests to it.
+거의 다 왔다. Now that we have built every class, let's put them together in `AppDelegate`. But first we will write some tests to verify that  `AppDeleate` behaves as expected. *AppMenuTests* target에 이름이 `AppDelegateTests.swift`인 새로운 테스트 파일을 만든다. 다음의 test를 추가한다.
 
 ~~~swift
 import UIKit
@@ -1995,9 +1995,10 @@ class AppDelegateTests: XCTestCase {
 }
 ~~~
 
-> In [Managing App Menu](#managing_app_menu), we created `MenuItemBuilder` protocol when we realized that we needed a fake object that could stand-in for the real menu builder. But, here we are creating fake app menu manager objects inside the tests themselves. It's perfectly fine to do so. If we decide to rename `menuViewController` method in real app menu manager class, Swift will force us to modify all our fake objects to use the new method name. Because of that, all these fake objects will always be in sync with the real app menu manager. This approach comes very handy if you need to create quick fake objects inside the tests.
 
-When we created a new Xcode project, `AppDelegate` was added only to the *AppMenu* target. We need to add it to `AppMenuTests* target as well. After that replace its content with following:
+> [App Menu 관리하기](#managing_app_menu)에서, 진짜 menu builder를 위한 가짜 object가 필요하다고 알아차렸을 때 `MenuItemBuilder` protocol을 만들었다. 하지만, 여기에서는 내부적으로 test 자체의 가짜 app menu manager object들을 만든다. 이건 완벽하게 괜찮다. 진짜 app menu manager class에 있는 `menuViewController` method의 이름을 변경하기로 결정한 경우, Swift는 모든 우리의 가짜 object들의 이름도 새로운 method 이름을 사용하도록 강제할 것이다. 그 덕분에 모든 가짜 object들은 진짜 app menu manager와 동기화된다. test 내부에서 빠르게 가짜 object를 만들 때, 이 방법은 매우 유용하다.
+
+새로운 Xcode project를 만들 때, `AppDelegate`는 *AppMenu* target에만 추가되어 있다. `AppMenuTests` target에도 잘 추가해야 한다. 그 후에 다음과 같이 내용을 변경한다:
 
 ~~~swift
 import UIKit
@@ -2041,7 +2042,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ~~~
 
-It would be nice to extract the code that configures `AppMenuManager` out from `AppDelegate`. We are going to apply what [Graham Lee](https://twitter.com/secboffin) taught us in [Test-Driven iOS Development](http://goo.gl/iiKpC1) here and create our own dependency injection class instead of using a full blown [depdendency injection framework](http://www.typhoonframework.org/). AppMenu is a simple app, at least for now. So we shouldn't be adding dependencies to it unless we need them. Create a new test file named `ObjectConfiguratorTests.swift` in *AppMenuTests* target and replace its content with following.
+`AppDelegate`에서 `AppMenuManager`를 설정하는 code를 추출하는 것이 좋다. We are going to apply what [Graham Lee](https://twitter.com/secboffin) taught us in [Test-Driven iOS Development](http://goo.gl/iiKpC1) here and create our own dependency injection class instead of using a full blown [depdendency injection framework](http://www.typhoonframework.org/). 적어도 지금은 App Menu는 간단한 app이다. 그래서 필요한 것이 아니면 dependency를 추가해서는 안된다. *AppMenuTests* target에 이름이 `ObjectConfiguratorTests.swift`인 새로운 test 파일을 만들고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2067,7 +2068,7 @@ class ObjectConfiguratorTests: XCTestCase {
 }
 ~~~
 
-Create the `ObjectConfigurator` class and add it to both targets. Replace its content with following.
+`ObjectConfigurator` class를 만들고 각 target에 추가한다. 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2086,7 +2087,7 @@ class ObjectConfigurator {
 }
 ~~~
 
-Instead of creating an `AppMenuManager` object itself, app delegate will tell the object configurator to do so. Let's make changes to `AppDelegate` and its tests to include the new approach.
+Instead of creating an `AppMenuManager` object itself, app delegate will tell the object configurator to do so. 새로운 접근법이 포함되도록 `AppDelegate`와 그의 test를 변경하자.
 
 ~~~swift
 class FakeAppMenuManager: AppMenuManager {
@@ -2195,7 +2196,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ~~~
 
-Let's turn our attention to `MenuViewController`. Although, all tests for it should be passing now we need to do a little refactoring. Let's extract the code that decides which view controller should be the tap handler into a separate class. Create a new test class named `MenuItemTapHandlerBuilderTests` in *AppMenuTests* target and replace its content with following.
+`MenuViewController`로 관심을 돌려보자. 지금 모든 test를 통과해야 하지만 조금의 refactoring을 해야한다. Let's extract the code that decides which view controller should be the tap handler into a separate class. *AppMenuTests* target에 이름이 `MenuItemTapHandlerBuilderTests`인 새로운 test class를 만들고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2245,7 +2246,7 @@ class MenuItemTapHandlerBuilderTests: XCTestCase {
 }
 ~~~
 
-Let's make the test pass by creating a new class named `MenuItemTapHandlerBuilder`. Add it to both targets and replace its content with following.
+이름이 `MenuItemTapHandlerBuilder`인 새로운 class를 만들어 test를 통과시키자. 각 target에 추가하고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2375,7 +2376,7 @@ class AppMenuManagerTests: XCTestCase {
 }
 ~~~
 
-Let's run the app (*Product > Run* or ⌘R). When each menu item is tapped, the correct view controller should be pushed into the app navigation stack. Our final app design (listed below) ended up not deviating too much from the initial design. However, it is quite possible for the final design to evolve into something completely different.
+app을 실행시켜보자(*Product > Run* or ⌘R). 각각의 menu item을 선택했을 때, app navigation stack에 적절한 view controller가 push 될 것이다. 최종 app design(아래에 나열된)은 초기의 design에서 크게 벗어나지 않았다. 그러나, 최종 design은 완전히 다른 것으로 진화하는 것이 충분히 가능하다.
 
 [![final_app_design.png](https://d23f6h5jpj26xu.cloudfront.net/3fmqoko8psjlrw.png)](http://img.svbtle.com/3fmqoko8psjlrw.png)
 
