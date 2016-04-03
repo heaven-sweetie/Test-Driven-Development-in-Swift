@@ -496,10 +496,10 @@ class MenuItemsPlistReaderTests: XCTestCase {
 I realized that we forgot to add a test for a scenario when the plist exists, but `readMenuItems` is unable to read it perhaps due to bad data. I will leave that as an exercise for you my dear readers.
 
 <a name="building_menu_items"></a>
-Building Menu Items
+### Building Menu Items
 ===================
 
-We are now ready to build `MenuItem` instances from the metadata we just read. Create a new test class named `MenuItemBuilderTests` and replace its content with following:
+우리는 우리가 지금 읽은 메타데이타에서 `MenuItem` 개체를 만들 준비가 되었다. 새로운 test 클래스의 이름을 `MenuItemBuilderTests`로 만들고 아래 내용을 작성하자:
 
 ~~~swift
 import UIKit
@@ -552,11 +552,11 @@ class MenuItemBuilderTests: XCTestCase {
 }
 ~~~
 
-A menu item must have a title. Therefore, we need to make sure that `MenuItemBuilder` returns an error if the title is missing. We also need to make sure that an empty list of menu items is returned when an error occurs.
+Menu item은 반드시 title을 가져야 한다. 그러므로 우리는 `MenuItemBuilder`가 title이 아닌 에러를 리턴하는지 확인해야된다. 또한 menu item이 오류가 발생할때 비어있는 리스트를 리턴하는지 확인해야된다.
 
-In above test, instead of using the real menu items metadata reader (`MenuItemsPlistReader`), we are using a fake one called `FakeMenuItemsReader`. The reason for that is we need to isolate the class under test from all other components in the app. By doing so when a test fails, we can be reasonably certain that the issue is in the class under test and not someother class that it depends on. Furthermore, if we used the real metadata reader in our tests and if that class decides to download the plist from a remote server in the future, the tests for `MenuItemBuilder` will suffer unnecessarily if the download takes a while. We should always aim towards *speedy* and *non-brittle* tests that are easy to maintain.
+위의 테스트에선 진짜 menu items 메타데이타 reader (`MenuItemsPlistReader`) 대신에, 우리는 `FakeMenuItemsReader`라고 부르는 가짜를 사용하였다. 그 이유는 앱안의 모든 다른 구성요소로부터 test 클래스를 분리할 필요가 있기 때문이다. 이렇게함으로써 test가 실패 했을때 다른 클래스가 아닌 test 중인 클래스에서 문제가 발생했다는 것을 합리적으로 확신할 수 있습니다. 게다가, 만약 우리의 테스트에서 진짜 메타데이타 reader를 사용한다면 그리고 만약 미래에 클래스를 원격서버로 부터 plist를 다운로드 하기로 결정한다면, `MenuItemBuilder`를 test할때 다운로드 하는동안 쓸데없는 고통을 받을 것입니다. 우리는 항상 깨지지 않고 빠른 쉬운 유지보수를 목표해 왔다.
 
-For `FakeMenuItemsReader` to be able to stand-in for other menu items readers out there, it must conform to the `MenuItemsReader` protocol. Instead of reading the metadata from a file or remote server, it always returns a hard-coded array of dictionaries. Create `FakeMenuItemsReader` class and add it only to `AppMenuTests` target. We won't be using this class in any of the application code. Replace the content of `FakeMenuItemsReader.swift` file with following:
+`FakeMenuItemsReader`는 다른 menu items에서 독자적으로 있을 경우 `MenuItemsReader`의 프로토콜을 준수 해야한다. 메타데이터를 파일이나 원격 서버로 부터 읽을때 이것은 항상 hard-coded 된 배열 dictionaries로 리턴한다. `FakeMenuItemsReader` 클래스를 만들고 더한하는건 오직 `AppMenuTests` 대상으로 한다. 우리는 이 클래스를 어떠한 어플리케이션 코드에서도 사용하지 않을 것이다. `FakeMenuItemsReader.swift` 파일의 내용을 대신 작성한다:
 
 ~~~swift
 import Foundation
@@ -589,13 +589,14 @@ class FakeMenuItemsReader : MenuItemsReader {
 }
 ~~~
 
-One concern that often arises with these *fake* classes is that they might go out of date if the public API of the original classes they are standing in for change. It's a valid concern. However, since Swift throws a compile time error if a class that claims to conform to a protocol doesn't actually implement the required methods, we don't need to worry about it here. For example, if we decided to return a non-optional array of menu items from the `readMenuItems` method in `MenuItemsReader` protocol we will be forced to apply that change to both `MenuItemsPlistReader` and `FakeMenuItemsReader` classes. Go ahead, try it. Isn't Swift great that way?
+*가짜* 클래스들에 종종 생기는 한가지 관심사는 만약 원래 클래스들의 퍼블릭 API들의 바뀌는것이며 그것은 유효한 관심사다. 그렇지만 Swift가 컴파일 할때 에러가 발생할때 우리는 그것에 대해 걱정할 필요가 없다. 
+예를들어 만약 우리가 `MenuItemsReader` 프로토콜안의 `readMenuItems` 로부터 menu items의 non-optional 배열을 반환하기로 결정한 경우 우리는 모두 `MenuItemsPlistReader` 및 `FakeMenuItemsReader` 클래스에 그 변경 사항을 적용하도록 강요한다. 어서 시도해보자. Swift는 좋은방법인가?
 
-> If you would like to learn more about an "alternate universe" these fake objects might create in your tests with specific examples, please read chapter 9 (*Creating Test Doubles* section) from [Practical Object Oriented Design in Ruby](http://goo.gl/bbzSpz) book.
+> 만약 너가 "alternate universe"를 더 배우길 원한다면 이러한 가짜 객체는 테스트에서 만들수 있습니다. 구체적인 예로 [Practical Object Oriented Design in Ruby](http://goo.gl/bbzSpz) 책의 챕터 9(*Creating Test Double* section)를 읽어 주십시요.
 
-The other concern with *fake* classes is that they might be giving us a false sense of security. How do we really know that `MenuItemsPlistReader` and `MenuItemBuilder` work well together? The answer is we don't, at least through unit tests. The job of making sure that different units of an app work well together is usually given to [integration tests](http://goo.gl/bRjDIS), which won't be covered in this blog post.
+*가짜* 객체의 다른 관심사는 그들이 잘못된 보안감각을 제공할 수 있다는 점이다. 우리는 어떻게 'MenuItemsPlistReader'와 'MenuItemBuilder'가 함께 작동하는지 잘 알수있을까요? 그 대답은 유닛테스트를 통해 하진 않을 것이다. 앱의 다른 유닛이 서로 잘 작동하는지 확인하는 작업은 통합테스트에서 주어지며 이 블로그에선 포함되어 있지 않다.
 
-Now create a new Swift class named `MenuItemBuilder` in *AppMenu* group. Add it to both targets and replace its content with following:
+*AppMenu* 그룹안에 'MenuItemBuilder'라는 이름의 새로운 Swift 클래스를 만들자. 모두 대상에 추가하고 다음과 같이 내용을 바꿉니다:
 
 ~~~swift
 import Foundation
@@ -622,7 +623,7 @@ class MenuItemBuilder {
 }
 ~~~
 
-We have written just enough code to make the error tests pass. Next we need to make sure that the builder creates correct number of menu items. Add following test to `MenuItemBuilderTests` class.
+우리는 에러 tests통과할 충분한 코드를 썻다. 다음으로 우리는 빌더가 정확한 수의 menu items를 만드는지 확인해야한다. `MenuItemBuilderTests` 클래스에 다음 테스트를 추가하자.
 
 ~~~swift
 func testOneMenuItemInstanceIsReturnedForEachDictionary() {
@@ -637,7 +638,7 @@ func testOneMenuItemInstanceIsReturnedForEachDictionary() {
 }
 ~~~
 
-One feature I particularly like about Swift is that I can easily ignore a return value that I am not interested in by using `_`. Following modification to `MenuItemBuilder` class should make all tests pass.
+Swift는 내가 관심없는 것은 `-`를 사용하여 리턴값을 무시하기 쉽고 이것은 내가 특별히 좋아하는 기능이다. `MenuItemBuilder` 클래스의 변경에 따라 모든 테스트를 통과 해야한다.
 
 ~~~swift
 class MenuItemBuilder {
@@ -675,9 +676,8 @@ class MenuItemBuilder {
 }
 ~~~
 
-> You might have noticed that I didn't strictly follow the *red-green-refactor* cycle with above changes. I should be extracting the error building code into a separate method only after all tests are passing. Although, I don't encourage ignoring the *write minimum amount of code to pass tests first* rule from TDD, I will be doing exactly  so every now and then so as not to make this blog post too long.
-
-The last test for `MenuItemBuilder` is to verify that it populates the menu item instances' properties with values present in metadata dictionaries.
+> 너는 내가 *red-green-refactor* 주기와 위의 변경을 엄격하게 수행하지 않은 것을 알수 있다. 나는 모든 테스트가 통과한 후 별도의 방법으로 error building code에서 추출해야합니다. 비록 나는 최소한의 코드를 써서 테스트를 통과하는 TDD의 첫번째 룰을 무시하는건 권장하지 않지만, 나는 이제 모든걸 정확하게 그리고 이 블로그 게시물이 너무 길지 않도록 할 것이다.
+`MenuItemBuilder`의 마지막 테스트는 metadata dictionaries에 있는 값으로 menu item의 인스턴스의 속성 값을 채웠는지 확인하는 것입니다.
 
 ~~~swift
 func testMenuItemPropertiesContainValuesPresentInDictionary() {
@@ -719,18 +719,18 @@ func testMenuItemPropertiesContainValuesPresentInDictionary() {
 }
 ~~~
 
-Once again, we are using multiple assertions within a test here. The test above should pass without any code changes.
+다시한번, 우리는 이 테스트 내부에서 여러가지 주장을 사용하고 있다. 위의 테스트는 어떠힌 코드를 변경하지 않고 통과 해야한다.
 
 <a name="displaying_menu_items"></a>
-Displaying Menu Items
+## 메뉴 아이템 표시
 =====================
 
-Now that we have a way to build `MenuItem` instances and populate them with information present in a plist, let's move our focus to displaying their content. We will be using a table view to display the menu items. As our initial design suggests, `MenuTableDefaultDataSource` will be responsible for providing a fully configured `UITableViewCell` for each menu item. The table view itself is managed by `MenuViewController`.
+이제 우리는 `MenuItem` 인스턴스를 빌드하는 방법과 plist의 정보들로 부터 채울 수 있는 방법을 알고있다. 그럼 컨텐츠를 보여주는 것으로 초점을 옮겨보자. 우리는 테이블뷰를 이용해 메뉴 아이템들을 보여줄 것이다. 우리의 초기 설계 알 수 있듯이, `MenuTableDefaultDataSource` 는 철저히 설정된 각각의 `UITableViewCell` 메뉴 아이템에서 제공되는 정보를 응답할 것이다. 테이블뷰 자체는 `MenuViewController`에 의해 관리된다. 
 
 <a name="providing_data_to_table_view"></a>
-### Providing Data to Table View
+### 테이블뷰에 데이터 제공
 
-We will use a separate object as a data source for the table view instead of giving `MenuViewController` that responsibility. `MenuViewController` is already reponsible for managing the views. I would hate to violate the [Single Responsibility Principle](http://www.objectmentor.com/resources/articles/srp.pdf) by also making it prepare data for the table view. But first we will create a protocol that `MenuTableDefaultDataSource` will conform to. Create a new Swift file named `MenuTableDataSource.swift` in *AppMenu* group. Add it to both targets and replace its content with following:
+우리는 테이블뷰의 데이터소스를 `MenuViewController`에 직접 구현을 하기 보다  분리된 객체를 사용할 것이다. `MenuViewController` 는 이미 뷰들을 관리하는 역할을 하고 있습니다. 나는 테이블뷰의 데이터를 미리 준비해서 [단일 책임 원칙](http://www.objectmentor.com/resources/articles/srp.pdf)을 위반하는 것을 피할 것이다. 그러나 첫번 째로 우리는 `MenuTableDefaultDataSource`에 일치하는 프로토콜을 만들것 이다. `MenuTableDataSource.swift`라는 스위프트 파일 파일을 *AppMenu* 그룹에 새로만들고. 파일의 타겟을 추가한 뒤 아래의 코드로 변경한다.
 
 ~~~swift
 import UIKit
@@ -740,7 +740,7 @@ protocol MenuTableDataSource : UITableViewDataSource {
 }
 ~~~
 
-`MenuTableDataSource` is a protocol that inherits from `UITableViewDataSource`. It also introduces a required method named `setMenuItems`. Now we are ready to write tests for `MenuTableDefaultDataSource`. Create a new test file named `MenuTableDefaultDataSourceTests.swift` in `AppMenuTests` target and replace its content with following.
+`MenuTableDataSource`는 `UITableViewDataSource` 로 부터 상속된 프로토콜이다. 또한 `setMenuItems` 메소드를 필수로 요구하고 있다. 이제 우리는 `MenuTableDefaultDataSource`의 테스트 작성이 준비됐다. `AppMenuTests` 타겟 안에서 `MenuTableDefaultDataSourceTests.swift` 라는 새로운 테스트 파일을 생성하고 다음의 코드를 추가한다.
 
 ~~~swift
 import UIKit
@@ -764,7 +764,7 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
 }
 ~~~
 
-Here we are verifying that the data source creates one table view cell instance for each menu item. Now create a new Swift file named `MenuTableDefaultDataSource.swift` and replace its content with the code below.
+여기서 우리는 각각의 메뉴 아이템 데이터 소스가 하나의 데이블뷰 셀 인스턴스를 만들고 있다는 것을 확인했다. 이제 `MenuTableDefaultDataSource.swift` 라는 새로운 스위프트 파일을 만들고 아래의 코드를 입력한다.
 
 ~~~swift
 import Foundation
@@ -793,11 +793,11 @@ class MenuTableDefaultDataSource : NSObject, MenuTableDataSource {
 }
 ~~~
 
-Although we haven't written tests for `tableView:cellForRowAtIndexPath:` method yet, we need to implement it in order to run the previous test. It happens to be a required method in `UITableViewDataSource` protocol and Swift won't compile `MenuTableDefaultDataSource` without it. 
+아직 우리는 테스트를 위한 `tableView:cellForRowAtIndexPath:` 메소드를 아직 작성하지 않았다. 우리는 요청에 대해 동작할 수 있는 구현이 테스트 이전에 필요하다. 이 작업은 `UITableViewDataSource` 프로토콜에서 요구하는 메소드가 있어야 하고 스위프트는 `MenuTableDefaultDataSource` 없이 컴파일을 할 수 없기 때문이다.
 
-One other thing you might have noticed about `MenuTableDefaultDataSource` is that it inherits from `NSObject`. The reason for that is in order to conform to `UITableViewDataSource` protocol, it needs to conform to `NSObject` protocol as well. An easy way to accomplish that is by making it a subclass of `NSObject` which already conforms to the `NSObject` protocol.
+혹시 `MenuTableDefaultDataSource` 에 대하여 알아 차렸을 수도 있겠지만 이것은 `NSObject` 를 상속받고 있다. 그 이유는 `UITableViewDataSource` 프로토콜과 일치하기 위해, 또한 `NSObject` 프로토콜을 준수할 필요가 있기 때문이다. 이것을 가장 쉽게 따르는 방법으로는 `NSObject` 프로토콜을 준수 하는 `NSObject` 의 서브클래스를 만드는 것이다.
 
-In above test, we are cheating by returning `1` from `tableView:numberOfRowsInSection:` method. Add one more test to verify that the data source always returns correct number of rows no matter how many menu items are present.
+위의 테스트에서, 우리는 `tableView:numberOfRowsInSection:` 메서드에서 무조건 `1` 을 반환하도록 만들었다. 데이터 소스가 얼마나 많은 메뉴 아이템이 있든 항상 정확한 수를 반환하는지 증명하는 테스트를 추가한다.
 
 ~~~swift
 func testReturnsTwoRowsForTwoMenuItems() {
@@ -817,7 +817,7 @@ func testReturnsTwoRowsForTwoMenuItems() {
 }
 ~~~
 
-Return `menuItems`'s actual count instead of a hard-coded value of `1` to make the above test pass.
+`menuItems` 는 테스트를 통과하기 위해 하드코딩된 `1` 대신 실제 카운트 값을 반환한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -828,7 +828,7 @@ func tableView(tableView: UITableView!,
 }
 ~~~
 
-We also need to make sure that the data source returns correct number of sections. Here is a test for that:
+또한 우리는 데이터소스가 정확한 섹션의 갯수를 반환하는지 확인이 필요하다. 여기 그것에 대한 테스트이다:
 
 ~~~swift
 func testReturnsOnlyOneSection() {
