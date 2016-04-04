@@ -839,7 +839,7 @@ func testReturnsOnlyOneSection() {
 }
 ~~~
 
-Return `1` from `numberOfSectionsInTableView` method to make previous test pass. Although this method is not required by `UITableViewDataSource` protocol and the default implementation already returns `1`, we need to implement it in order to be able to call it from the test.
+`numberOfSectionsInTableView` 메서드로부터 리턴되는 `1` 은 이전 테스트의 통과를 시키기 위해 만들었다. 또한 이 메서드는 `UITableViewDataSource` 프로토콜에서 필수로 요구되는 메서드는 아니다. 그리고 기본적으로 이미 `1` 이 리턴되고 있다. 우리는 테스트로 부터 명령이 가능한 호출에 대해 구현이 필요하다.
 
 ~~~swift
 func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
@@ -847,9 +847,9 @@ func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
 }
 ~~~
 
-> One other test I would have liked to write is to verify that the data source throws an exception if asked for number of rows in a section whose index is anything other than 0. However, I couldn't find our old friend `XCTAssertThrows` in Xcode 6 version of XCTest. I don't know how else to verify that an exception was thrown.
+> 또 다른 테스트로 검증을 위해 작성하기 좋은것으로 데이터소스로 부터 예외처리를 발생시키는 것이다. 섹션안에 행의 숫자 인덱스를 0이 아닌 다른숫자로 입력하라고 묻는것 이라면, 하지만 우리의 오래된 친구 `XCTAssertThrows` 를 Xcode 6의 XCTest에서는 찾을 수 없다. 그래서 예외상황이 발생된 상황을 다르게 증명하는 방법을 모르겠다.
 
-Testing every aspect of a view could turn out to be tedius on iOS. I tend to test at least the semantics behind a view. By that I mean test what a view should represent. In this case, each table view cell represents a menu item. Therefore, I would at least like to verify that a cell displays the title from a respective menu item. Here is what that test looks like:
+iOS에서 모든 뷰의 테스트를 하는건 상당히 지루할 수 있다. 나는 최소의 뷰만 테스트하는 경향이 있다. 이말은 대표적인 뷰들만 테스트를 하는것인데, 이 경우에는 각각의 메뉴를 대표하는 테이블뷰 셀만 테스트를 하는것이다. 그러므로, 나는 각각의 메뉴 아이템으로 부터의 대표적인 셀만 증명하는 것을 선호한다. 아래의 코드를 참고하자.
 
 ~~~swift
 func testEachCellContainsTitleForRespectiveMenuItem() {
@@ -867,7 +867,7 @@ func testEachCellContainsTitleForRespectiveMenuItem() {
 }
 ~~~
 
-Following changes to `tableView:cellForRowAtIndexPath:` method should make the previous test pass.
+`tableView:cellForRowAtIndexPath:` 메서드는 이전에 테스트가 통과되도록 변경해야 한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -887,7 +887,7 @@ func tableView(tableView: UITableView!,
 }
 ~~~
 
-Let's refactor the tests for `MenuTableDefaultDataSource` we have written so far by extracting the common code into `setup` method.
+`MenuTableDefaultDataSource` 테스트를 위한 리팩토링을 해보자. 우리는 예전에 `setup` 메서드에서 공통 코드를 추출했었다.
 
 ~~~swift
 import UIKit
@@ -952,13 +952,13 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
 ~~~
 
 <a name="handling_menu_item_tap_event"></a>
-### Handling Menu Item Tap Event
+### Handling Menu Item Tap Event (메뉴 아이템 탭 이벤트 핸들링)
 
-As it turns out our table view setup is fairly simple. Therefore, it makes sense to use the same object as a data source and a delegate. When a table view cell is tapped, the data source will post a notification. `MenuViewController` (or any other class that is interested in that notification) can then query the notification to find out which cell was tapped and take appropriate action.
+테이블뷰 설정은 보는것과 같이 굉장히 간단하다. 그러므로, 데이터소스나 델리게이트 같은 오브젝트의 사용도 이해가 될것이다. 테이블 뷰의 셀이 탭될때 데이터소스는 알림을 보낼 것이다. `MenuViewController` (또는 관심이 있는 다른 클래스) 는 어떤 셀이 탭이 되었고 어떤 액션을 받을 것인지 찾기위해 신호를 보낼 수 있다.
 
 [![table_view_architecture.png](https://d23f6h5jpj26xu.cloudfront.net/9pmnjzuddxpv3g.png)](http://img.svbtle.com/9pmnjzuddxpv3g.png)
 
-This design is somewhat inspired by chapter 9 from [Test-Driven iOS Development](http://goo.gl/iiKpC1) book. Let's add the delegate related details to `MenuTableDataSource` protocol.
+이 디자인은 [Test-Driven iOS Development](http://goo.gl/iiKpC1) 책의 챕터 9로 부터 약간의 영감을 받았다. 그럼 `MenuTableDataSource` 프로토콜에 델리게이트와 관련된 세부항목을 추가하자.
 
 ~~~swift
 import UIKit
@@ -971,7 +971,7 @@ protocol MenuTableDataSource : UITableViewDataSource, UITableViewDelegate {
 }
 ~~~
 
-Now we need to verify that the data source indeed posts a notification when a menu item is tapped. Following tests will do that.
+이제 우리는 데이터소스가 정말로 테이블뷰의 아이템이 탭되었을 때 알림을 보내는지 알수 있는 증명이 필요하다. 다음과 같이 테스트해볼 것이다.
 
 ~~~swift
 class MenuTableDefaultDataSourceTests: XCTestCase {
@@ -1028,12 +1028,12 @@ class MenuTableDefaultDataSourceTests: XCTestCase {
     // Previous tests for data source are excluded here...
 }
 ~~~
+ 
+`setup` 메서드 안에서, 우리는 `MenuTableDataSourceDidSelectItemNotification` 라는 이름의 노티피케이션 옵져버를 테스트 클래스에 추가했었다. 알림이 도착할 때, `didReceiveNotification:` 메서드는 호출될 것이다. 노피티케이션 오브젝트는 `postedNotification` 변수에 저장된다. 그때 우리는 이것이 정확한 이름과 메뉴 아이템 인스턴스라는 것이 증명된다. 여기서 중요하게 생각해야 할 점은 `tearDown` 메서드 안에 옵져버가 테스트 클래스를 지운다는 것이다. 우리는 [NSNotificationCenter](http://goo.gl/TfnJ3T) 에서 노티피케이션이 보내졌을때 확인 할 수 있는 API를 제공하지 않기 때문에 이 복잡한 프로세스를 통해서 노티피케이션이 정말로 보내지는지 증명할 수 있었다. 
 
-In `setup` method, we added the test class to be an observer for a notification with name `MenuTableDataSourceDidSelectItemNotification`. When that notification arrives, `didReceiveNotification:` method should get called. The notification object passed to that method is stored in `postedNotification` variable. Then we verify that it has the correct name and menu item instance. It is important that the test class is removed as an observer in `tearDown` method. We go through this complex process to verify that a notification is indeed posted because [NSNotificationCenter](http://goo.gl/TfnJ3T) doesn't provide an API to query if a notification has been posted to it.
+> [Building Menu Items](#building_menu_items) 섹션 안에서 나는 가짜 오브젝트를 사용하는 것을 추천한다. 그러나, 나는 위에 테스트에서 `NSNotificationCenter` 클래스를 사용했다. 일반적으로 나는 애플 프레임워크에서 제공되는 오브젝트의 대체되는 다른것을 사용하지 않는다. 그들은 신뢰할 수 있는 용어와 속도를 공평하게 한다. 그 들이 말하기를 만약 당신의 테스트에서 애플 프레임워크로 부터 제공하는 객체의 사용이 줄어든다면 그들을 위해서 테스트를 대체하기 위한 다른걸 만드는 것을 주저하지 않을 것이다.
 
-> In [Building Menu Items](#building_menu_items) section I recommended that we use fake objects in tests. However, I am using `NSNotificationCenter` class straight up in above tests. Generally, I don't use stand-ins for objects provided by Apple frameworks. They are fairly reliable in terms of stability and speed. That being said, if it turns out that the reliability of your tests are going down due to the use of real objects provided by Apple frameworks, don't hesitate to create test replacements for them.
-
-Implement `tableView:didSelectRowAtIndexPath:` method from `UITableViewDataSource` protocol in `MenuTableDefaultDataSource` class to make above tests pass.
+`MenuTableDefaultDataSource` 클래스 안에서 `UITableViewDataSource` 프로토콜로 부터 `tableView:didSelectRowAtIndexPath:` 메서드가 테스트를 통과 하도록 구현한다.
 
 ~~~swift
 func tableView(tableView: UITableView!,
@@ -1050,9 +1050,9 @@ func tableView(tableView: UITableView!,
 ~~~
 
 <a name="managing_menu_table_view"></a>
-### Managing Menu Table View
+### Managing Menu Table View (메뉴 테이블 뷰 관리)
 
-`MenuViewController` will be responsible for managing the table view and any other views that might need to be createed in order to present the menu. The first thing we need to make sure is that we can give it a data source. We also need to ensure that it has a title and a table view. Create a new test file named `MenuViewControllerTests.swift` and replace its content with following tests.
+`MenuViewController` 는 테이블뷰와 메뉴에서 보여줄 모든 필요한 뷰들을 관리하는 역할을 할 것이다. 첫번째로 우리는 필요한 데이터소스를 만들야 한다. 또한 테이블뷰와 타이틀이 확실히 필요하다. 새로운 테스트 파일 `MenuViewControllerTests.swift` 을 만들고 아래의 내용을 추가한다.
 
 ~~~swift
 import UIKit
@@ -1091,7 +1091,7 @@ class MenuViewControllerTests: XCTestCase {
 }
 ~~~
 
-Instead of using a real data source object here, we are using a fake one named `MenuTableFakeDataSource`. Create a new Swift file named `MenuTableFakeDataSource.swift` in `AppMenuTests` target and replace its content with following.
+여기에 실제 데이터 소스를 사용하는 것 대신에, 우리는 `MenuTableFakeDataSource` 라는 이름의 가짜 데이터를 사용할 것이다. `AppMenuTests` 안에 `MenuTableFakeDataSource.swift` 라는 이름의 스위프트 파일을 생성하고 타겟을 정하고 다음의 코드로 대체한다.
 
 ~~~swift
 import Foundation
@@ -1119,7 +1119,7 @@ class MenuTableFakeDataSource : NSObject, MenuTableDataSource {
 }
 ~~~
 
-All `MenuTableFakeDataSource` does is provide stub implementation of all the required methods in `MenuTableDataSource` protocol so that it can stand in for any object that conforms to `MenuTableDataSource`. Now create `MenuViewController` class (*Right click AppMenu group > New File > iOS > Source > Cocoa Touch Class*). Make it a subclass of `UIViewController` and select the *Also create XIB file* checkbox. Don't forget to add it to both targets. The tests above should pass just by declaring two properties and assigning a title.
+모든 `MenuTableFakeDataSource` 은 `MenuTableDataSource` 프로토콜 안의 필요 메서들 구현을 요구한다. 그리고 `MenuTableDataSource` 에 일치하는 모든 객체들을 대신한다. 지금 `MenuViewController` 클래스를 생성한다. (*AppMenu 그룹을 오른쪽으로 클릭 > New File > iOS > Source > Cocoa Touch Class*). `UIViewController` 의 서브클래스로 생성한다 그리고 *Also create XIB file* 체크박스도 선택한다. 그리고 절대 타겟을 두개다 추가하는 것을 잊지말자. 이 작업은 위의 선언된 두개의 구역과 타이틀을 선정하기 위한 테스트를 통과 하기 위함이다.
 
 ~~~swift
 import UIKit
@@ -1135,9 +1135,9 @@ class MenuViewController: UIViewController {
 }
 ~~~
 
-Change the size of main view in `MenuViewController.xib` to *iPhone 4-inch* from *Simulated Metrics* section in *Attributes Inspector*. Set the view's orientation to *Portrait*. After that add a table view as the main view's subview. Connect the table view in XIB to the `tableView` outlet in `MenuViewController` class.
+`MenuViewCOntroller.xib` 의 메인뷰 사이즈는 *Attricbutes Inspector* 섹션 안에서 *Simulated Metrics* 을 *iPhont 4-inch* 로 변경한다. 뷰의 오리엔테이션은 *Portrait* 로 설정한다. 메인 뷰의 서브뷰, 테이블뷰 같은 뷰들을 추가한 후에. `MenuViewController` 클래스의 `tableView` 아울렛을 XIB의 테이블뷰와 연결한다.
 
-Next we need to make sure that `MenuViewController` sets the table view's delegate and dataSource properties to the data source object we assigned to it. [viewDidLoad](http://goo.gl/OeT0hV) method is where we want it to make that connection. Following tests should ensure that.
+다음으로 우리는 `MenuViewController` 의 델리게이트와 데이터소스 영역들에 대한 설정들을 우리가 정한 데이터 소스 객체로 지정해야 한다. [viewDidLoad](http://goo.gl/OeT0hV) 메서드는 우리가 원하는 연결을 정할 수 있는 곳이다. 다음 테스트를 코드를 확인하자.
 
 ~~~swift
 func testTableViewIsGivenADataSourceInViewDidLoad() {
@@ -1153,6 +1153,8 @@ func testTableViewIsGivenADelegateInViewDidLoad() {
 }
 ~~~
 
+위의 테스트를 통과 시키기 위해 `viewDidLoad` 안에서 테이블뷰의 데이터소스와 델리게이트를 연결한다.
+
 Set table view's data source and delegate properties in `viewDidLoad` to make above tests pass.
 
 ~~~swift
@@ -1164,7 +1166,7 @@ override func viewDidLoad() {
 }
 ~~~
 
-In [Handling Menu Item Tap Event](#handling_menu_item_tap_event) we made `MenuTableDefaultDataSource` post a notification when a menu item is tapped. `MenuViewController` needs to listen to that notification in order to show a correct view for that menu item. If that notification arrives when `MenuViewController`'s view is hidden, it should ignore it. Therefore, it should register for that notification in `viewDidAppear:` method. It should also stop listening for that notification in `viewDidDisappear:` method. Let's capture that requirement through tests.
+[Handling Menu Item Tap Event](#handling_menu_item_tap_event) 에서 우리는 메뉴 아이템을 탭했을 때  `MenuTableDefaultDataSource` 가 노티피케이션을 보내는 것을 만들었었다. `MenuViewController` 는 노티피케이션을 받아서 정확한 메뉴 아이템의 뷰인지 확인할 수 있는 것이 필요하다. 만약 그 노티피케이션이 도착했는데 `MenuViewController` 의 뷰가 감춰져 있다면, 그건 무시될 것이다. 그러므로, `viewDidAppear:` 메서드에서 노티피케이션을 등록해야한다. 또한 `viewDidDisaapear:` 메서드 안에서 해체를 해주어야 한다. 다음의 테스트를 통해서 요구하는 것을 확인하자.
 
 ~~~swift
 let postedNotification = "MenuViewControllerTestsPostedNotification"
@@ -1255,7 +1257,7 @@ extension MenuViewController {
 }
 ~~~
 
-That is a lot of code. Let me explain. In order to verify that `MenuViewController` registers itself to listen for `MenuTableDataSourceDidSelectItemNotification`, we need to somehow get hold of the method that gets called when that notification arrives. Once we get hold of it, we need to capture the notification passed to that method and verify its existence. We could simply make a non-private property for that notification in `MenuViewController`, but I don't like that approach. `MenuViewController` shouldn't be forced to expose something just because tests need it. There has to be a better way. How about we [swizzle](http://nshipster.com/method-swizzling/) the notification handler during runtime by providing a different implementation that is suited for our testing purpose? Following code will do just that.
+굉장히 많은 코드가 있는데, 설명을 하자면. `MenuViewController` `MenuTableDataSourceDidSelectItemNotification` 의 호출을 받기 위해 자기 자신을 등록했다. 우리는 노티피케이션이 도착했을 때 우리가 원하는 메서드를 어떻게 호출할 것인지 알아야 한다. 이것은 한번만 받을 수 있어서, 노티피케이션이 메서드를 통과할 때 실체를 알수 있는 검증이 필요하다. 간단하게 비 개인화 속성으로 `MenuViewController` 안에 노티피케이션을 만들 것이다. 그러나 개인적으로 이 접근 방법을 좋아하진 않는다. `MenuViewController` 는 단지 테스트를 위해서 강제로 노출되지 않아야 한다. 여기에 더 좋은 방법이 있다. 우리는 어떻게 [swizzle](http://nshipster.com/method-swizzling/) 노티피케이션 핸들러를 런타임에서 각자 다르게 요구되는 구현을 테스트의 목적에 맞게 사용할 수 있을까? 다음 코드를 보자.
 
 ~~~swift
 func swizzleNotificationHandler() {
@@ -1275,7 +1277,7 @@ func swizzleNotificationHandler() {
 }
 ~~~
 
-And here is the [extension](http://goo.gl/lL1Cwy) for `MenuViewController` class that provides the test implementation:
+그리고 여기에 `MenuViewController` 클래스를 테스트 구현에 요구되는 대로 [extension](http://goo.gl/lL1Cwy) 하였다.
 
 ~~~swift
 extension MenuViewController {
@@ -1290,9 +1292,9 @@ extension MenuViewController {
 }
 ~~~
 
-All we are doing here is assign the notification to `postedNotification` constant so that we can evaluate it in tests. In `testRegistrationForMenuItemTappedNotificationHappensInViewDidAppear` after we swizzle the notification handler, we call `viewDidAppear`, post a notification and verify that `postedNotification` is not nil. Whereas in `testRemovesItselfAsListenerForMenuItemTappedNotificationInViewDidDisappear`, we first call `viewDidAppear` so that `MenuViewController` registers for the notification. After that we call `viewDidDisappear` and post a notification. This notification shouldn't reach to `MenuViewController` as we expect it to remove itself as an observer from `NSNotificationCenter` in `viewDidDisapper` method.
+우리는 여기에 테스트안에서 측정할 수 있는 `postedNotification` 을 지속적으로 받기 위한 노티피케이션 등록을 모두했다. `testRegistrationForMenuItemTappedNotificationHappensInViewDidAppear` 안에서 swizzle 노티피케이션 핸들러를 등록한 후에 `viewDidAppear` 를 호출하고, nil 이 아닌 `postedNotificiation` 을 노티피케이션과 검증을 위해 보냈다. 반면 `testRemovesItselfAsListenerForMenuItemTappedNotificationInViewDidDisappear` 에서는 먼저 `viewDidAppear` 를 호출하고 `MenuViewController` 에 노티피케이션을 등록했다. 이 노티피케이션은 `viewDidDisappear` 안에서 자신을 옵져버를 제거한다. 이는 노티피케이션이 `MenuViewController` 에서 `viewDidDisappear` 호출된 후에도 노티피케이션을 받을 수 있기 때문이다.
 
-To make the tests pass, all we need to do is register and unregister for the notification in proper places.
+테스트들을 통과하기 위해선 우리는 모두 노티피케이션의 등록과 해제 적절한 곳에서 해야한다.
 
 ~~~
 override func viewDidAppear(animated: Bool) {
@@ -1319,7 +1321,7 @@ func didSelectMenuItemNotification(notification: NSNotification?) {
 Sliding Views In
 ================
 
-When a menu item is tapped, we need to display a view. But which one? How about we ask the menu item itself? To keep things simple, let's store the view controller's name in `tapHandlerName` property in `MenuItem`.
+menu item이 눌렸을 때 view가 보여져야 한다. 하지만 어떤것? menu item에 직접 물어보는 건 어떨까? 단순함을 유지하기 위해 view controller의 이름을 `MenuItem`에 `tapHandlerName` property 로 저장하자.
 
 ~~~swift
 class MenuItemTests: XCTestCase {
@@ -1342,7 +1344,7 @@ class MenuItem {
 }
 ~~~
 
-It's perfectly fine for a menu item to not have a tap handler. Therefore, we should make the `tapHandlerName` property an optional. Now that we have added an additional property to `MenuItem`, we need to adjust `menuItems.plist`, `FakeMenuItemsReader`, `MenuItemsPlistReaderTests`, `MenuItemBuilderTests`, and `MenuItemBuilder`. The adjusted code is listed below.
+이것은 menu item이 tap handler를 갖지 않을 좋을 방법이다. Therefore, `tapHandlerName` property를 optional로 만들어야 한다.  이제 `MenuItem`에 property를 추가하고 `menuItems.plist`, `FakeMenuItemsReader`, `MenuItemsPlistReaderTests`, `MenuItemBuilderTests`, 그리고 `MenuItemBuilder`를 맞추자. 조정된 코드는 아래에 나열되어 있다.
 
 ~~~xml
 <!--menuItems.plist-->
@@ -1477,7 +1479,7 @@ class MenuItemBuilder {
 }
 ~~~
 
-Next up we need to make sure that `MenuViewController` displays the correct view when a menu item is tapped. Following tests will do just that.
+다음으로 menu item이 눌렸을 때 `MenuViewController`가 맞는 view를 보여주도록 해야한다. 다음 test가 그렇게 할 것이다.
 
 ~~~swift
 class MenuViewControllerTests: XCTestCase {
@@ -1544,7 +1546,7 @@ class MenuViewControllerTests: XCTestCase {
 }
 ~~~
 
-Let's make `MenuViewController` push the right view controller into app navigation stack.
+`MenuViewController`를 app navigation stack의 오른쪽 view controller로 push하도록 만들자
 
 ~~~swift
 class MenuViewController: UIViewController {
@@ -1587,15 +1589,15 @@ class MenuViewController: UIViewController {
 }
 ~~~
 
-We also need to create tap handler classes. Create following view controllers and add them to both *AppMenu* and *AppMenuTests* targets. Don't forget to also create a *XIB* file for each one of them.
+또한 tap handler class들을 만들어야 한다. 다음의 view controller를 만들고 각각에 *AppMenu* and *AppMenuTests* target을 추가한다. 각각을 위한 *XIB* 파일을 만드는 것 또한 잊지 말자.
 
 * `ContributionsViewController`
 * `RepositoriesViewController`
 * `PublicActivityViewController`
 
-You might be wondering why we didn't create view controllers listed above during runtime instead of using the switch case statement. Two reasons:
+switch case 문을 사용하는 대신에 runtime에 view controller를 만들지 않는지 궁금할 것이다.
 
-* I am not quite sure what's the best way to do that in Swift. In Objective-C you could easily accomplish that with following code.
+* 나는 Swift에서 가장 좋은 방법이 무엇인지 확신할 수 없다. Objective-C에서는 다음의 code에서와 같이 쉽게 할 수 있다.
 
   ~~~Obj-C
     UIViewController *tapHandler = nil;
@@ -1607,14 +1609,14 @@ You might be wondering why we didn't create view controllers listed above during
     }
   ~~~
 
-* Unlike Objective-C, Swift requires you to specify which XIB file to use when you create an instance of a view controller even though the XIB name is the same as the view controller's class name. Therefore, simply calling the `alloc`, `init` equivalent in Swift isn't sufficient.
+* Objective-C와는 다르게, Swift는 XIB의 이름과 view controller의 이름이 같더라도 view controller의 instance를 만들 때, XIB를 지정해야 한다. 게다가, 간단히 `alloc`, `init`으로 부르는 기능은 Swift에서는 필요하지 않다.
 
-Unfortunately, that still doesn't make the tests pass. It turns out that so far we have built every class we initially set out to build except `AppMenuManager`. Once that class is built, we should be in a position to make above tests pass. Let's get to it.
+불행히도, test들을 통과하게 하진 못한다. 모든 class에 드러내다. It turns out that so far we have built every class we initially set out to build except `AppMenuManager`. 그 class가 만들어지면 위의 test를 통과할 수 있어야 한다. 해보자.
 
 <a name="managing_app_menu"></a>
-### Managing App Menu
+### App Memu 관리하기
 
-Create a new test file named `AppMenuManagerTests.swift` in *AppMenuTests* target. Add following tests to it.
+*AppMenuTests* target안에 file name이 `AppMenuManagerTests.swift`인 새로운 test 파일을 만든다. 다음의 test를 추가한다.
 
 ~~~swift
 import UIKit
@@ -1692,7 +1694,7 @@ class AppMenuManagerTests: XCTestCase {
 }
 ~~~
 
-`AppMenuManager` is responsible for creating `MenuViewController` if `MenuItem` objects were created successfully from the metadata. If not, it just returns nil. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*](#building_menu_items), but it doesn't provide a way for us to set the error. Let's take care of that.
+metadata로부터 성공적으로 `MenuItem` object가 만들어진 경우 `AppMenuManager`는 `MenuViewController`를 만들 책임이 있다. 그렇지 못할 경우 nil을 반환한다. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*](#building_menu_items), but it doesn't provide a way for us to set the error. Let's take care of that.
 
 ~~~swift
 class FakeMenuItemsReader : MenuItemsReader {
@@ -1720,7 +1722,7 @@ class FakeMenuItemsReader : MenuItemsReader {
     // ...
 ~~~
 
-Next we need to create `FakeMenuItemBuilder` class. Now that there is going to be more than one class playing the role of a menu item builder, we should create a protocol to make it clear what it means for a class to become a menu item builder. For now, playing that role means implementing `buildMenuItemsFromMetadata` method correctly. Listed below is the new protocol.
+다음으로 `FakeMenuItemBuilder`class를 만들어야 한다. Now that there is going to be more than one class playing the role of a menu item builder, we should create a protocol to make it clear what it means for a class to become a menu item builder. For now, playing that role means implementing `buildMenuItemsFromMetadata` method correctly. 아래는 새로운 protocol이다.
 
 ~~~swift
 import Foundation
@@ -1730,7 +1732,7 @@ protocol MenuItemBuilder {
 }
 ~~~
 
-Wait a minute. Didn't we already name our real builder class `MenuItemBuilder`? Yes we did. `MenuItemBuilder` name is better suited for a protocol. Let's rename the original builder class to `MenuItemDefaultBuilder`.
+잠깐만. Didn't we already name our real builder class `MenuItemBuilder`? 그렀다, 했다. `MenuItemBuilder` 이름은 protocol에 더 적합하다. 원래의 builder class의 이름을 `MenuItemDefaultBuilder`로 바꾸자.
 
 ~~~swift
 import Foundation
@@ -1777,7 +1779,7 @@ class MenuItemDefaultBuilder : MenuItemBuilder {
 }
 ~~~
 
-We also need to adjust tests to use the new name.
+또한 새로운 이름을 사용하도록 test를 조정해야 한다.
 
 ~~~swift
 class MenuItemDefaultBuilderTests: XCTestCase {
@@ -1816,7 +1818,7 @@ class MenuItemDefaultBuilderTests: XCTestCase {
 }
 ~~~
 
-Finally, here is what the `FakeMenuItemReader` class looks like. You don't need to add this class to the *AppMenu* target since it's only used in tests.
+마지막으로, here is what the `FakeMenuItemReader` class looks like. 오직 test에서만 사용하기 때문에 *AppMenu* target에 추가할 필요는 없다.
 
 ~~~swift
 import Foundation
@@ -1835,7 +1837,7 @@ class FakeMenuItemBuilder : MenuItemBuilder {
 }
 ~~~
 
-It makes the metadata passed to it available for inspection. It also allows us to set the error and menu items we want it to return which is very convenient. Now we are ready to build the `AppMenuManager` class. Here is what it looks like.
+It makes the metadata passed to it available for inspection. It also allows us to set the error and menu items we want it to return which is very convenient. `AppMenuManager` class를 build할 준비가 되었다. Here is what it looks like.
 
 ~~~swift
 import Foundation
@@ -1900,15 +1902,15 @@ class AppMenuManager {
 }
 ~~~
 
-I apologize for not staying true to the *read-green-refactor* cycle here. I wanted to focus more on important techniques that make writting tests a bit easier rather than showing you every single step in the process. One of those techniques is creating fake (or test double) objects that play the same role as the real objects so that we can easily swap them to make our tests more maintainable. Speaking of fake objects, [Martin Fowler](http://martinfowler.com/) has written a [great post](http://martinfowler.com/articles/mocksArentStubs.html) on the topic.
+여기에서 *read-green-refactor* cycle을 따르지 않는 것을 사과한다. I매 단계 진행하는 절차를 보여주는 것보다 test를 보다 쉽게 작성하는 중요한 테크닉에 집중하길 원했다. 이러한 테크닉 중 하나는 test를 유지하면서 쉽게 그것들을 바꿀 수 있도록 실제 object와 동일한 역할을 하는 가짜(또는 테스트를 위한) object를 만든 것이다. 가짜 object에 대해서 [Martin Fowler](http://martinfowler.com/)가 쓴 [좋은 게시물](http://martinfowler.com/articles/mocksArentStubs.html)이 있다.
 
-Before we move on, I would like to emphasize the importance of [Dependency Injection](http://www.martinfowler.com/articles/injection.html) in writing testable and reusable classes. Our `AppMenuManager` class needs to work with two other classes that conform to `MenuItemsReader` and `MenuItemBuilder` protocols to successfully create `MenuItem` objects. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
+넘어가기 전에, 테스트할 수 있고 재사용할 수 있는 class들을 작성하는데 [Dependency Injection](http://www.martinfowler.com/articles/injection.html)의 중요성에 대해 강조하고 싶다. 우리의 `AppMenuManager` class는 `MenuItem` object를 만들기 위해 `MenuItemsReader`과 `MenuItemBuilder` protocol을 따르는 두 개의 다른 class들의 함께 동작해야 한다. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
 
 <a name="putting_it_all_together"></a>
 Putting It All Together
 =======================
 
-We are almost there. Now that we have built every class, let's put them together in `AppDelegate`. But first we will write some tests to verify that  `AppDeleate` behaves as expected. Create a new test file named `AppDelegateTests.swift` in *AppMenuTests* target. Add following tests to it.
+거의 다 왔다. Now that we have built every class, let's put them together in `AppDelegate`. But first we will write some tests to verify that  `AppDeleate` behaves as expected. *AppMenuTests* target에 이름이 `AppDelegateTests.swift`인 새로운 테스트 파일을 만든다. 다음의 test를 추가한다.
 
 ~~~swift
 import UIKit
@@ -1993,9 +1995,10 @@ class AppDelegateTests: XCTestCase {
 }
 ~~~
 
-> In [Managing App Menu](#managing_app_menu), we created `MenuItemBuilder` protocol when we realized that we needed a fake object that could stand-in for the real menu builder. But, here we are creating fake app menu manager objects inside the tests themselves. It's perfectly fine to do so. If we decide to rename `menuViewController` method in real app menu manager class, Swift will force us to modify all our fake objects to use the new method name. Because of that, all these fake objects will always be in sync with the real app menu manager. This approach comes very handy if you need to create quick fake objects inside the tests.
 
-When we created a new Xcode project, `AppDelegate` was added only to the *AppMenu* target. We need to add it to `AppMenuTests* target as well. After that replace its content with following:
+> [App Menu 관리하기](#managing_app_menu)에서, 진짜 menu builder를 위한 가짜 object가 필요하다고 알아차렸을 때 `MenuItemBuilder` protocol을 만들었다. 하지만, 여기에서는 내부적으로 test 자체의 가짜 app menu manager object들을 만든다. 이건 완벽하게 괜찮다. 진짜 app menu manager class에 있는 `menuViewController` method의 이름을 변경하기로 결정한 경우, Swift는 모든 우리의 가짜 object들의 이름도 새로운 method 이름을 사용하도록 강제할 것이다. 그 덕분에 모든 가짜 object들은 진짜 app menu manager와 동기화된다. test 내부에서 빠르게 가짜 object를 만들 때, 이 방법은 매우 유용하다.
+
+새로운 Xcode project를 만들 때, `AppDelegate`는 *AppMenu* target에만 추가되어 있다. `AppMenuTests` target에도 잘 추가해야 한다. 그 후에 다음과 같이 내용을 변경한다:
 
 ~~~swift
 import UIKit
@@ -2039,7 +2042,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ~~~
 
-It would be nice to extract the code that configures `AppMenuManager` out from `AppDelegate`. We are going to apply what [Graham Lee](https://twitter.com/secboffin) taught us in [Test-Driven iOS Development](http://goo.gl/iiKpC1) here and create our own dependency injection class instead of using a full blown [depdendency injection framework](http://www.typhoonframework.org/). AppMenu is a simple app, at least for now. So we shouldn't be adding dependencies to it unless we need them. Create a new test file named `ObjectConfiguratorTests.swift` in *AppMenuTests* target and replace its content with following.
+`AppDelegate`에서 `AppMenuManager`를 설정하는 code를 추출하는 것이 좋다. We are going to apply what [Graham Lee](https://twitter.com/secboffin) taught us in [Test-Driven iOS Development](http://goo.gl/iiKpC1) here and create our own dependency injection class instead of using a full blown [depdendency injection framework](http://www.typhoonframework.org/). 적어도 지금은 App Menu는 간단한 app이다. 그래서 필요한 것이 아니면 dependency를 추가해서는 안된다. *AppMenuTests* target에 이름이 `ObjectConfiguratorTests.swift`인 새로운 test 파일을 만들고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2065,7 +2068,7 @@ class ObjectConfiguratorTests: XCTestCase {
 }
 ~~~
 
-Create the `ObjectConfigurator` class and add it to both targets. Replace its content with following.
+`ObjectConfigurator` class를 만들고 각 target에 추가한다. 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2084,7 +2087,7 @@ class ObjectConfigurator {
 }
 ~~~
 
-Instead of creating an `AppMenuManager` object itself, app delegate will tell the object configurator to do so. Let's make changes to `AppDelegate` and its tests to include the new approach.
+Instead of creating an `AppMenuManager` object itself, app delegate will tell the object configurator to do so. 새로운 접근법이 포함되도록 `AppDelegate`와 그의 test를 변경하자.
 
 ~~~swift
 class FakeAppMenuManager: AppMenuManager {
@@ -2193,7 +2196,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ~~~
 
-Let's turn our attention to `MenuViewController`. Although, all tests for it should be passing now we need to do a little refactoring. Let's extract the code that decides which view controller should be the tap handler into a separate class. Create a new test class named `MenuItemTapHandlerBuilderTests` in *AppMenuTests* target and replace its content with following.
+`MenuViewController`로 관심을 돌려보자. 지금 모든 test를 통과해야 하지만 조금의 refactoring을 해야한다. Let's extract the code that decides which view controller should be the tap handler into a separate class. *AppMenuTests* target에 이름이 `MenuItemTapHandlerBuilderTests`인 새로운 test class를 만들고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2243,7 +2246,7 @@ class MenuItemTapHandlerBuilderTests: XCTestCase {
 }
 ~~~
 
-Let's make the test pass by creating a new class named `MenuItemTapHandlerBuilder`. Add it to both targets and replace its content with following.
+이름이 `MenuItemTapHandlerBuilder`인 새로운 class를 만들어 test를 통과시키자. 각 target에 추가하고 다음의 내용으로 바꾸자.
 
 ~~~swift
 import UIKit
@@ -2373,22 +2376,22 @@ class AppMenuManagerTests: XCTestCase {
 }
 ~~~
 
-Let's run the app (*Product > Run* or ⌘R). When each menu item is tapped, the correct view controller should be pushed into the app navigation stack. Our final app design (listed below) ended up not deviating too much from the initial design. However, it is quite possible for the final design to evolve into something completely different.
+app을 실행시켜보자(*Product > Run* or ⌘R). 각각의 menu item을 선택했을 때, app navigation stack에 적절한 view controller가 push 될 것이다. 최종 app design(아래에 나열된)은 초기의 design에서 크게 벗어나지 않았다. 그러나, 최종 design은 완전히 다른 것으로 진화하는 것이 충분히 가능하다.
 
 [![final_app_design.png](https://d23f6h5jpj26xu.cloudfront.net/3fmqoko8psjlrw.png)](http://img.svbtle.com/3fmqoko8psjlrw.png)
 
 <a name="conclusion"></a>
-Conclusion
+결말
 ===========
 
-In this post we learned how to build a simple iOS app using TDD. Although Xcode 6 beta is a bit unstable as of this writing, XCTest itself seems to be quite stable. Despite the lack of mocking libraries such as [OCMock](http://ocmock.org/) and [Kiwi](https://github.com/kiwi-bdd/Kiwi), we were able to create fake objects easily and use them in our tests. Swift's ability to create classes inside a method came very handy while creating specialized fake objects quickly.
+이 post에서 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock](http://ocmock.org/)과 [Kiwi](https://github.com/kiwi-bdd/Kiwi) 같은 mocking library들의 부족에도 불구하고, fake object를 쉽게 만들고 그것을 test에 사용하는 것이 가능했다. Swift의 method 내부에서 class를 만드는 능력은 전문적인 가짜 object를 빠르게 만드는데 편리했다.
 
-Although Swift is a completely new language, the techniques you might have learned for testing features in Objective-C (or any other language for that matter) in the past are still applicable to Swift. We only scratched the surface of Test-Driven Development in this post. I encourage you to read the reference material listed in [Further Reading](#further_reading) section below for an in-depth examination of TDD. Hopefully, you will give TDD a try with your next iOS app. The only way to get better at designing (and testing) is by doing more of it.
+Swift는 완전히 새로운 언어임에도 불구하고, 이미 배웠던 Objective-C(또는 그 문제를 위한 어떤 다른 언어)에서의 test 기능을 위해 배웠을 기술들도 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리](#further_reading) section의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. design(그리고 test)에서 더 좋게 하는 유일한 방법은 그것을 더욱 많이 하는 것이다.
 
-The finished project is available on [Github](https://github.com/pawanpoudel/AppMenu).
+완성된 project는 [Github](https://github.com/pawanpoudel/AppMenu)에서 있다.
 
 <a name="further_reading"></a>
-Further Reading
+더 읽을거리
 ===============
 
 * [XCTest​Case / XCTest​Expectation / measure​Block()](http://nshipster.com/xctestcase/)
