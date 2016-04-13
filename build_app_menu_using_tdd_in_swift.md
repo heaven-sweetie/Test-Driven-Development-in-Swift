@@ -1,19 +1,19 @@
-In this blog post, we will learn how to build a simple iOS app menu (shown below) using [Test-Driven Development](http://martinfowler.com/bliki/TestDrivenDevelopment.html) in Swift.
-[![app_menu.png](https://d23f6h5jpj26xu.cloudfront.net/aacqorrxf8wpiw.png)](http://img.svbtle.com/aacqorrxf8wpiw.png)
-Here are things you need to know to fully understand the concepts presented in this post:
+이 블로그 게시물에서 우리는 스위프트로 [테스트 주도 개발][1]을 사용하여 간단한 iOS 앱 메뉴 (아래 그림 참조)를 작성하는 방법을 학습한다.
+[![app\_menu.png][image-1]][2]
+이 게시물에 제시된 개념을 완전히 이해하기 위해 알아야 할 사항은 다음과 같다:
 
 * Xcode 6
-* Familiarity with [basic concepts](http://goo.gl/PNWoSw) in Swift
-* Familiarity with commonly used classes in UIKit and Foundation (e.g., UITableView and NSNotificationCenter)
-* Familiarity with XCTest. If you have never used XCTest before, please read the *XCTestCase* section from [Matt Thompson's](https://twitter.com/mattt) [blog post](http://nshipster.com/xctestcase/) on the topic.
+* 스위프트 [기본 개념][3]에 익숙
+* UIKit 과 Foundation 에서 일반적으로 사용되는 클래스에 익숙 (예를 들어, UITableView 과 NSNotificationCenter)
+* XCTest에 익숙. 이전에 XCTest를 사용하지 않은 경우, [Matt Thompson’의][4] [블로그 게시물][5]에서 *XCTestCase* 섹션을 참조.
 
-Create a new iOS project in Xcode 6. Select the *Single View Application* template. Use *AppMenu* for Product Name, *Swift* as the language, and *iPhone* for Devices. Make sure the *Use Core Data* check box is not selected. For this exercise we won't be using [Storyboards](http://goo.gl/YOK2kR). So delete the `Main.storyboard` file. Don't forget to remove the storyboard name (Main) from the *Main Interface* drop-down located in *Deployment Info* section under *General* tab for *AppMenu* target. While we are at it, let's delete `ViewController.swift` and `AppMenuTests.swift` files as well. They were created by Xcode and we won't need them.
+Xcode 6에서 새로운 iOS 프로젝트를 만든다. *Single View Application* 템플릿을 선택한다. Product Name은 *AppMenu*, language는 *Swift*, 그리고 Devices는 *iPhone*으로 한다. *Use Core Data* 옵션을 선택하지 않도록 한다. 이 실습에서 우리는 [Storyboards][6]를 사용하지 않는다. 그러므로 `Main.storyboard` 파일을 삭제한다. *AppMenu* 타깃의 *General* 탭 아래 *Deployment Info* 섹션에 위치한 *Main Interface* 드롭다운에 있는 스토리보드 이름 (Main)을 없애는 걸 잊지 않는다. 하는 김에, `ViewController.swift`와 `AppMenuTests.swift` 파일도 삭제하자. 그것들은 Xcode에 의해 만들어지고 우리는 그것들이 필요가 없다.
 
-Before we embark on this beautiful journey of Test-Driven Development (TDD), let's step back and think about the app design a little bit. You might have heard that TDD is more of a design exercise than a testing activity. If so, you have heard it correct. TDD forces us to use the code even before it exists through tests which in turn forces us to think about how the class under test interacts with the rest of the code in an application. This act of using code we wish we had helps us make (good) design decisions that lead to the creation of reusable classes and easy-to-use application programming interfaces (API). That being said, it is not always guaranteed that an application built by writing tests first is well designed. We still need to apply good design [principles](http://goo.gl/bbzSpz) and [patterns](http://goo.gl/U23sC8) in addition to writing tests first.
+우리가 테스트 주도 개발 (TDD)의 아름다운 여행을 시작하기 전에, 한 걸음 뒤로 물러나 앱의 설계에 대해 조금 생각해보자. TDD는 테스트 활동보다 디자인 연습이라고 더 많이 들었을 수도 있다. 그렇다면, 당신은 올바르게 들었다. TDD는 테스트를 통해 존재하기도 전에 코드를 사용하도록 강요함으로써 우리가 테스트 중인 클래스가 응용 프로그램 코드의 나머지 부분과 상호 작용하는 방법에 대해 생각하도록 한다. 이러한 코드를 사용하는 행위는 우리가 재사용 가능한 클래스와 사용하기 쉬운 응용 프로그램 프로그래밍 인터페이스(API)의 생성으로 이어지는 (좋은) 디자인 결정을 내릴 수 있게 한다. 그러나, 테스트를 먼저 쓰는 것으로 응용 프로그램을 만드는 것이 항상 잘 설계된다고 보장할 수는 없다. 우리는 여전히 테스트를 먼저 작성하는 것 외에도 좋은 디자인 [원칙][7]과 [패턴][8]을 적용해야 한다.
 
-The figure below shows the initial design we are aiming for. If you are worried that we might have just stepped into the [Big Up Front Design](http://en.wikipedia.org/wiki/Big_Design_Up_Front) (BUFD) territory, fear not. The design below gives us a starting point. We haven't figured out every single aspect of the app yet. For example, we don't know what the public API for each class is going to look like. As we go through the process of building the app, we might realize that we need to change the design below completely and that is perfectly fine.
+아래 그림은 우리가 목표로 하는 초기 디자인을 보여준다. 우리가 [Big Up Front Design][9] (BUFD) 영역에 들어간다고 걱정할 수도 있지만, 두려워 마라. 아래의 설계는 우리에게 시작점을 준다. 우리는 아직 앱의 모든 면을 생각하지 않았다. 예를 들어, 우리는 각 클래스의 공개 API가 어떤 모습으로 보여질지 모른다. 우리는 응용 프로그램을 만드는 절차를 통해, 아래의 디자인을 완전히 변경해야 한다는 것과 그것이 완벽하게 괜찮은 것을 깨닫게 될 수 있다.
 
-[![initial_app_design.png](https://d23f6h5jpj26xu.cloudfront.net/ttuxgmqb3ia.png)](http://img.svbtle.com/ttuxgmqb3ia.png)
+[![initial\_app\_design.png][image-2]][10]
 
 <a name="identifying_domain_objects"></a>
 Identifying Domain Objects
@@ -21,132 +21,132 @@ Identifying Domain Objects
 
 When I am starting on a new project, I often struggle to find the *first good* test to write. As a result, I resort to looking for domain objects which are usually easy to test. Our app menu will display information about each menu item for example, title, subtitle, and icon. We need an instance that stores information about a menu item. Let's call it `MenuItem`. We'll define what information a `MenuItem` instance contains through tests.
 
-Create a new file named `MenuItemTests.swift` and place it under `AppMenuTests` group. Right click on `AppMenuTests` group and select *New File > iOS > Source > Test Case Class* to create a new test class named `MenuItemTests`. Make it a subclass of `XCTestCase` and select Swift as the language. Delete everything in `MenuItemTests.swift` file except the class definition and import statements.
+Create a new file named `MenuItemTests.swift` and place it under `AppMenuTests` group. Right click on `AppMenuTests` group and select *New File \> iOS \> Source \> Test Case Class* to create a new test class named `MenuItemTests`. Make it a subclass of `XCTestCase` and select Swift as the language. Delete everything in `MenuItemTests.swift` file except the class definition and import statements.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuItemTests: XCTestCase {
 }
-~~~
+\~\~\~
 
 Our first test will be to make sure that a menu item has a title. Add following test to the `MenuItemTests` class.
 
-~~~swift
+\~\~\~swift
 func testThatMenuItemHasATitle() {
-    let menuItem = MenuItem(title: "Contributions")
-    XCTAssertEqual(menuItem.title, "Contributions", 
-        "A title should always be present")
+	let menuItem = MenuItem(title: "Contributions")
+	XCTAssertEqual(menuItem.title, "Contributions", 
+	    "A title should always be present")
 }
-~~~
+\~\~\~
 
 In above test, we create an instance of `MenuItem`; give it a title; and verify that it holds onto that title by using the `XCTAssertEqual` assertion provided by XCTest framework that comes with Xcode. We are also (implicitly) specifying that `MenuItem` should provide an initializer that takes `title` as a parameter. When we write tests first, we tend to discover subtle details like this about our APIs.
 
-> XCTest provides [a number of assertions](http://goo.gl/PU24UU). Each assertion allows you to pass a test description that explains what the test is about. I recommend you always provide this description.
+> XCTest provides [a number of assertions][11]. Each assertion allows you to pass a test description that explains what the test is about. I recommend you always provide this description.
 
-As things stand right now, we are not able to run the test. It doesn't even compile. We need to create `MenuItem`. Before we decide whether we should make `MenuItem` a struct or a class, I encourage you to read the [Choosing Between Classes and Structures](http://goo.gl/ptBqYR) section from *The Swift Programming Language Guide* first. 
+As things stand right now, we are not able to run the test. It doesn't even compile. We need to create `MenuItem`. Before we decide whether we should make `MenuItem` a struct or a class, I encourage you to read the [Choosing Between Classes and Structures][12] section from *The Swift Programming Language Guide* first. 
 
-At a first glance, `struct` might seem sufficient here. However, in [Handling Menu Item Tap Event](#handling_menu_item_tap_event) section below we will need to store a menu item in a `NSNotification` object. `NSNotification` expects an object that needs to be stored in it to conform to `AnyObject` protocol. A `struct` type doesn't conform to `AnyObject`. Therefore, we need to make `MenuItem` a class. Create a new file named `MenuItem.swift` (*File > New > File > iOS > Source > Swift File*). Add it to both *AppMenu* and *AppMenuTests* targets and replace its content with following.
+At a first glance, `struct` might seem sufficient here. However, in [Handling Menu Item Tap Event][13] section below we will need to store a menu item in a `NSNotification` object. `NSNotification` expects an object that needs to be stored in it to conform to `AnyObject` protocol. A `struct` type doesn't conform to `AnyObject`. Therefore, we need to make `MenuItem` a class. Create a new file named `MenuItem.swift` (*File \> New \> File \> iOS \> Source \> Swift File*). Add it to both *AppMenu* and *AppMenuTests* targets and replace its content with following.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 class MenuItem {
-    let title: String
-    
-    init(title: String) {
-        self.title = title
-    }
+	let title: String
+	
+	init(title: String) {
+	    self.title = title
+	}
 }
-~~~
+\~\~\~
 
 > You shouldn't have to add application classes into test targets, but there seems to be a bug in Xcode 6 that forces you to do so. Otherwise, you will get *use of unresolved identifier* error. If you receive that error in tests at any point in the future, you can fix it by adding the application class file to the test target as well. You can add a file to a target by clicking the *+* button from *Compile Sources* section in *Build Phases* tab.
 
-Run the test (*Product > Test* or ⌘U). It should pass. Let's write a test for the subtitle property next.
+Run the test (*Product \> Test* or ⌘U). It should pass. Let's write a test for the subtitle property next.
 
-~~~swift
+\~\~\~swift
 func testThatMenuItemCanBeAssignedASubTitle() {
-    let menuItem = MenuItem(title: "Contributions")
-    menuItem.subTitle = "Repos contributed to"
-
-    XCTAssertEqual(menuItem.subTitle!, "Repos contributed to",
-        "Subtitle should be what we assigned")
+	let menuItem = MenuItem(title: "Contributions")
+	menuItem.subTitle = "Repos contributed to"
+	
+	XCTAssertEqual(menuItem.subTitle!, "Repos contributed to",
+	    "Subtitle should be what we assigned")
 }
-~~~
+\~\~\~
 
 It should pass after adding the `subTitle` property to `MenuItem` class.
 
-~~~swift
+\~\~\~swift
 class MenuItem {
-    let title: String
-    var subTitle: String?
-    
-    init(title: String) {
-        self.title = title
-    }
+	let title: String
+	var subTitle: String?
+	
+	init(title: String) {
+	    self.title = title
+	}
 }
-~~~
+\~\~\~
 
 Since a menu item must have a title, it's defined as a constant property. Whereas a `subTitle` is not required. Therefore, we define it as a variable property. Finally, here is a test for the `iconName` property:
 
-~~~swift
+\~\~\~swift
 func testThatMenuItemCanBeAssignedAnIconName() {
-    let menuItem = MenuItem(title: "Contributions")
-    menuItem.iconName = "iconContributions"
-
-    XCTAssertEqual(menuItem.iconName!, "iconContributions",
-        "Icon name should be what we assigned")
+	let menuItem = MenuItem(title: "Contributions")
+	menuItem.iconName = "iconContributions"
+	
+	XCTAssertEqual(menuItem.iconName!, "iconContributions",
+	    "Icon name should be what we assigned")
 }
-~~~
+\~\~\~
 
 It should pass by adding the `iconName` property to `MenuItem`.
 
-~~~swift
+\~\~\~swift
 class MenuItem {
-    let title: String
-    var subTitle: String?
-    var iconName: String?
-    
-    init(title: String) {
-        self.title = title
-    }
+	let title: String
+	var subTitle: String?
+	var iconName: String?
+	
+	init(title: String) {
+	    self.title = title
+	}
 }
-~~~
+\~\~\~
 
 Before we move on, let's refactor our tests by moving the `MenuItem` creation code into `setup` method.
 
-> It is a general practice in TDD to [refactor](http://refactoring.com/) once all tests are passing. The process of refactoring helps us improve design in small increments by organizing the code and tests better. It also helps us remove any duplication. This iterative process of writing a failing test first, making it pass with just enough code and improving the design before writing the next failing test is known as *red-green-refactor* cycle.
+> It is a general practice in TDD to [refactor][14] once all tests are passing. The process of refactoring helps us improve design in small increments by organizing the code and tests better. It also helps us remove any duplication. This iterative process of writing a failing test first, making it pass with just enough code and improving the design before writing the next failing test is known as *red-green-refactor* cycle.
 
-[![red_green_refactor.png](https://d23f6h5jpj26xu.cloudfront.net/fqgfy5r3w7nkq.png)](http://img.svbtle.com/fqgfy5r3w7nkq.png)
+[![red\_green\_refactor.png][image-3]][15]
 
-~~~swift
+\~\~\~swift
 class MenuItemTests: XCTestCase {
-    var menuItem: MenuItem?
-    
-    override func setUp() {
-        super.setUp()
-        menuItem = MenuItem(title: "Contributions")
-    }
-    
-    func testThatMenuItemHasATitle() {
-        XCTAssertEqual(menuItem!.title, "Contributions",
-            "A title should always be present")
-    }
-    
-    func testThatMenuItemCanBeAssignedASubTitle() {
-        menuItem!.subTitle = "Repos contributed to"
-        XCTAssertEqual(menuItem!.subTitle!, "Repos contributed to",
-            "Subtitle should be what we assigned")
-    }
-    
-    func testThatMenuItemCanBeAssignedAnIconName() {
-        menuItem!.iconName = "iconContributions"
-        XCTAssertEqual(menuItem!.iconName!, "iconContributions",
-            "Icon name should be what we assigned")
-    }
+	var menuItem: MenuItem?
+	
+	override func setUp() {
+	    super.setUp()
+	    menuItem = MenuItem(title: "Contributions")
+	}
+	
+	func testThatMenuItemHasATitle() {
+	    XCTAssertEqual(menuItem!.title, "Contributions",
+	        "A title should always be present")
+	}
+	
+	func testThatMenuItemCanBeAssignedASubTitle() {
+	    menuItem!.subTitle = "Repos contributed to"
+	    XCTAssertEqual(menuItem!.subTitle!, "Repos contributed to",
+	        "Subtitle should be what we assigned")
+	}
+	
+	func testThatMenuItemCanBeAssignedAnIconName() {
+	    menuItem!.iconName = "iconContributions"
+	    XCTAssertEqual(menuItem!.iconName!, "iconContributions",
+	        "Icon name should be what we assigned")
+	}
 }
-~~~
+\~\~\~
 
 XCTest calls the `setup` method before running each test. When a test is finished running, the variables assigned in `setup` method are set to `nil`. After that it creates brand new instances of objects and assigns them to those variables in `setup` method again. XCTest does this to isolate each test. We don't want any residual data created by previous tests affect the next ones. As XCTest automatically sets variables to `nil` when a test is finished running, we don't need to explicitly set them to `nil` in `tearDown` method (also provided by XCTest). That being said, if you need to do any cleanup other than setting variables to `nil`, you should do that in `tearDown` method.
 
@@ -154,204 +154,204 @@ XCTest calls the `setup` method before running each test. When a test is finishe
 Reading Metadata from Plist
 ===========================
 
-Next up we will read the metadata required to create `MenuItem` instances from a plist. As our initial design suggests, we will be storing the metadata for each menu item in a [plist](http://goo.gl/naf71B) file. That way if we need to populate the menu dynamically by fetching the metadata from a remote server, we won't need to make too many changes as long as the metadata format remains the same. Before building `MenuItemsPlistReader` class, we need to know how the `MenuItemsReader` protocol looks like. Here is my initial pass at it:
+Next up we will read the metadata required to create `MenuItem` instances from a plist. As our initial design suggests, we will be storing the metadata for each menu item in a [plist][16] file. That way if we need to populate the menu dynamically by fetching the metadata from a remote server, we won't need to make too many changes as long as the metadata format remains the same. Before building `MenuItemsPlistReader` class, we need to know how the `MenuItemsReader` protocol looks like. Here is my initial pass at it:
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 protocol MenuItemsReader {
-  func readMenuItems() -> ([[String : String]]?, NSError?)
+  func readMenuItems() -\> ([[String : String]]?, NSError?)
 }
-~~~
+\~\~\~
 
-`readMenuItems` method doesn't take any parameters and returns a [tuple](http://goo.gl/9k9O5u). The first item in the tuple contains an array of [dictionaries](http://goo.gl/ucLgzF) if the file was read successfully. The second item contains an [NSError](http://goo.gl/VYcIen) object if the file couldn't be read. `readMenuItems` is a required method. So any class that wants to conform to `MenuItemsReader` protocol, must implement it. Create a new file named `MenuItemsReader.swift`. Add it to both targets and then replace its content with the protocol definition code listed above.
+`readMenuItems` method doesn't take any parameters and returns a [tuple][17]. The first item in the tuple contains an array of [dictionaries][18] if the file was read successfully. The second item contains an [NSError][19] object if the file couldn't be read. `readMenuItems` is a required method. So any class that wants to conform to `MenuItemsReader` protocol, must implement it. Create a new file named `MenuItemsReader.swift`. Add it to both targets and then replace its content with the protocol definition code listed above.
 
 Let's read the metadata from a plist file next. We will write tests first. Create a new file named `MenuItemsPlistReaderTests.swift` in `AppMenuTests` target. Now that you know how to create a Swift test file, I will skip those instructions moving forward. Delete everything in `MenuItemsPlistReaderTests.swift` file except the class definition and import statements. Our first test will be to make sure that `MenuItemsPlistReader` returns an error if it can't read the specified plist file. Add following test to the `MenuItemsPlistReaderTests` class.
 
-~~~swift
+\~\~\~swift
 func testErrorIsReturnedWhenPlistFileDoesNotExist() {
-    let plistReader = MenuItemsPlistReader()
-    plistReader.plistToReadFrom = "notFound"
-    
-    let (metadata, error) = plistReader.readMenuItems()
-    XCTAssertNotNil(error, "Error is returned when plist doesn't exist")
+	let plistReader = MenuItemsPlistReader()
+	plistReader.plistToReadFrom = "notFound"
+	
+	let (metadata, error) = plistReader.readMenuItems()
+	XCTAssertNotNil(error, "Error is returned when plist doesn't exist")
 }
-~~~
+\~\~\~
 
 We create an instance of `MenuItemsPlistReader`; give it a non-existent plist file name to read from; and call `readMenuItems` method. Then we verify that it returns an error. To make the test pass, we need to create `MenuItemsPlistReader` class and add it to both targets. Replace its content with following.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 class MenuItemsPlistReader: MenuItemsReader {
-    var plistToReadFrom: String? = nil
-    
-    func readMenuItems() -> ([[String : String]]?, NSError?) {
-        let error = NSError(domain: "Some domain", 
-                            code: 0, 
-                            userInfo: nil)
-        return ([], error)
-    }
+	var plistToReadFrom: String? = nil
+	
+	func readMenuItems() -> ([[String : String]]?, NSError?) {
+	    let error = NSError(domain: "Some domain", 
+	                        code: 0, 
+	                        userInfo: nil)
+	    return ([], error)
+	}
 }
-~~~
+\~\~\~
 
 Now run the test. It should pass. Although the test passes, something doesn't look right. `readMenuItems` doesn't even attempt to read the file. It always returns a tuple containing an empty array and not-so-useful error. This brings us to an important aspect of TDD: *write minimum code to pass the test*. Being disciplined about not writing anymore code than necessary to pass the tests is key to TDD. Therefore, we won't be fixing the simingly broken `readMenuItems` method unless our tests require us to do so.
 
 The only requirement we have defined for `MenuItemsPlistReader` class so far is that *it returns an error if the file doesn't exist*. We haven't specified what should be in that error object. Let's add a couple more tests to make sure the error contains the domain, code and description we are expecting.
 
-> Apple [recommends](http://goo.gl/akPPGh) that we use NSError objects to capture information about runtime errors. These objects should contain the error *domain*, a domain-specific error *code*, and a *user info* dictionary containing the error *description*. You can add other details about the error in *user info* dictionary, for example what steps to take to resolve the error.
+> Apple [recommends][20] that we use NSError objects to capture information about runtime errors. These objects should contain the error *domain*, a domain-specific error *code*, and a *user info* dictionary containing the error *description*. You can add other details about the error in *user info* dictionary, for example what steps to take to resolve the error.
 
-~~~swift
+\~\~\~swift
 func testCorrectErrorDomainIsReturnedWhenPlistDoesNotExist() {
-    let plistReader = MenuItemsPlistReader()
-    plistReader.plistToReadFrom = "notFound"
-    
-    let (metadata, error) = plistReader.readMenuItems()
-    let errorDomain = error?.domain
-    
-    XCTAssertEqual(errorDomain!, MenuItemsPlistReaderErrorDomain,
-        "Correct error domain is returned")
+	let plistReader = MenuItemsPlistReader()
+	plistReader.plistToReadFrom = "notFound"
+	
+	let (metadata, error) = plistReader.readMenuItems()
+	let errorDomain = error?.domain
+	
+	XCTAssertEqual(errorDomain!, MenuItemsPlistReaderErrorDomain,
+	    "Correct error domain is returned")
 }
 
 func testFileNotFoundErrorCodeIsReturnedWhenPlistDoesNotExist() {
-    let plistReader = MenuItemsPlistReader()
-    plistReader.plistToReadFrom = "notFound"
-    
-    let (metadata, error) = plistReader.readMenuItems()
-    let errorCode = error?.code
-    
-    XCTAssertEqual(errorCode!, 
-        MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
-        "Correct error code is returned")
+	let plistReader = MenuItemsPlistReader()
+	plistReader.plistToReadFrom = "notFound"
+	
+	let (metadata, error) = plistReader.readMenuItems()
+	let errorCode = error?.code
+	
+	XCTAssertEqual(errorCode!, 
+	    MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
+	    "Correct error code is returned")
 }
 
 func testCorrectErrorDescriptionIsReturnedWhenPlistDoesNotExist() {
-    let plistReader = MenuItemsPlistReader()
-    plistReader.plistToReadFrom = "notFound"
-    
-    let (metadata, error) = plistReader.readMenuItems()
-    let userInfo = error?.userInfo
-    let description: String = 
-        userInfo![NSLocalizedDescriptionKey]! as String
-    
-    XCTAssertEqual(description,
-        "notFound.plist file doesn't exist in app bundle",
-        "Correct error description is returned")
+	let plistReader = MenuItemsPlistReader()
+	plistReader.plistToReadFrom = "notFound"
+	
+	let (metadata, error) = plistReader.readMenuItems()
+	let userInfo = error?.userInfo
+	let description: String = 
+	    userInfo![NSLocalizedDescriptionKey]! as String
+	
+	XCTAssertEqual(description,
+	    "notFound.plist file doesn't exist in app bundle",
+	    "Correct error description is returned")
 }
-~~~
+\~\~\~
 
 Following changes to `MenuItemsPlistReader` should make the above tests pass.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 let MenuItemsPlistReaderErrorDomain = "MenuItemsPlistReaderErrorDomain"
 
 enum MenuItemsPlistReaderErrorCode : Int {
-    case FileNotFound
+	case FileNotFound
 }
 
 class MenuItemsPlistReader: MenuItemsReader {
-    var plistToReadFrom: String? = nil
-    
-    func readMenuItems() -> ([[String : String]]?, NSError?) {
-        let errorMessage = 
-            "\(plistToReadFrom!).plist file doesn't exist in app bundle"
-
-        let userInfo = [NSLocalizedDescriptionKey: errorMessage]
-
-        let error = NSError(domain: MenuItemsPlistReaderErrorDomain,
-            code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
-            userInfo: userInfo)
-
-        return ([], error)
-    }
+	var plistToReadFrom: String? = nil
+	
+	func readMenuItems() -> ([[String : String]]?, NSError?) {
+	    let errorMessage = 
+	        "\(plistToReadFrom!).plist file doesn't exist in app bundle"
+	
+	    let userInfo = [NSLocalizedDescriptionKey: errorMessage]
+	
+	    let error = NSError(domain: MenuItemsPlistReaderErrorDomain,
+	        code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
+	        userInfo: userInfo)
+	
+	    return ([], error)
+	}
 }
-~~~
+\~\~\~
 
 `readMenuItems` method still doesn't look right. Next tests we are going to write will force us not to cheat. Before we move forward, delete the test named `testErrorIsReturnedWhenPlistFileDoesNotExist`. It is made redundant by previous three tests.
 
-~~~swift
+\~\~\~swift
 func testPlistIsDeserializedCorrectly() {
-    let plistReader = MenuItemsPlistReader()
-    plistReader.plistToReadFrom = "menuItems"
-    
-    let (metadata, error) = plistReader.readMenuItems()
-    XCTAssertTrue(metadata?.count == 3, 
-        "There should only be three dictionaries in plist")
-    
-    let firstRow = metadata?[0]
-    XCTAssertEqual(firstRow!["title"]!, "Contributions",
-        "First row's title should be what's in plist")
-    XCTAssertEqual(firstRow!["subTitle"]!, "Repos contributed to",
-        "First row's subtitle should be what's in plist")
-    XCTAssertEqual(firstRow!["iconName"]!, "iconContributions",
-        "First row's icon name should be what's in plist")
-    
-    let secondRow = metadata?[1]
-    XCTAssertEqual(secondRow!["title"]!, "Repositories",
-        "Second row's title should be what's in plist")
-    XCTAssertEqual(secondRow!["subTitle"]!, "Repos collaborating",
-        "Second row's subtitle should be what's in plist")
-    XCTAssertEqual(secondRow!["iconName"]!, "iconRepositories",
-        "Second row's icon name should be what's in plist")
-    
-    let thirdRow = metadata?[2]
-    XCTAssertEqual(thirdRow!["title"]!, "Public Activity",
-        "Third row's title should be what's in plist")
-    XCTAssertEqual(thirdRow!["subTitle"]!, "Activity viewable by anyone",
-        "Third row's subtitle should be what's in plist")
-    XCTAssertEqual(thirdRow!["iconName"]!, "iconPublicActivity",
-        "Third row's icon name should be what's in plist")
+	let plistReader = MenuItemsPlistReader()
+	plistReader.plistToReadFrom = "menuItems"
+	
+	let (metadata, error) = plistReader.readMenuItems()
+	XCTAssertTrue(metadata?.count == 3, 
+	    "There should only be three dictionaries in plist")
+	
+	let firstRow = metadata?[0]
+	XCTAssertEqual(firstRow!["title"]!, "Contributions",
+	    "First row's title should be what's in plist")
+	XCTAssertEqual(firstRow!["subTitle"]!, "Repos contributed to",
+	    "First row's subtitle should be what's in plist")
+	XCTAssertEqual(firstRow!["iconName"]!, "iconContributions",
+	    "First row's icon name should be what's in plist")
+	
+	let secondRow = metadata?[1]
+	XCTAssertEqual(secondRow!["title"]!, "Repositories",
+	    "Second row's title should be what's in plist")
+	XCTAssertEqual(secondRow!["subTitle"]!, "Repos collaborating",
+	    "Second row's subtitle should be what's in plist")
+	XCTAssertEqual(secondRow!["iconName"]!, "iconRepositories",
+	    "Second row's icon name should be what's in plist")
+	
+	let thirdRow = metadata?[2]
+	XCTAssertEqual(thirdRow!["title"]!, "Public Activity",
+	    "Third row's title should be what's in plist")
+	XCTAssertEqual(thirdRow!["subTitle"]!, "Activity viewable by anyone",
+	    "Third row's subtitle should be what's in plist")
+	XCTAssertEqual(thirdRow!["iconName"]!, "iconPublicActivity",
+	    "Third row's icon name should be what's in plist")
 }
-~~~
+\~\~\~
 
 Here we are making sure that `readMenuItems` method actually reads data from the specified plist file and creates proper objects from that data.
 
 > A rule of thumb while writing unit tests is not to include more than one assertion in a test method. I am violating that rule here, because it makes sense to verify that the data read from the file is correct in one place.
 
-To pass above test, create a file named "menuItems.plist" *(Right click AppMenu group > New File > iOS > Resource > Property List)*. Add it to both targets. Open that file in source code mode *(Right click the file in Xcode > Open As > Source Code)* and replace its content with following:
+To pass above test, create a file named "menuItems.plist" *(Right click AppMenu group \> New File \> iOS \> Resource \> Property List)*. Add it to both targets. Open that file in source code mode *(Right click the file in Xcode \> Open As \> Source Code)* and replace its content with following:
 
-~~~xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+\~\~\~xml
+\<?xml version="1.0" encoding="UTF-8"?\>
+\<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"\>
 <plist version="1.0">
 <array>
-    <dict>
-        <key>title</key>
-        <string>Contributions</string>
-        <key>subTitle</key>
-        <string>Repos contributed to</string>
-        <key>iconName</key>
-        <string>iconContributions</string>
-        <key>featureName</key>
-        <string>contributions</string>
-    </dict>
-    <dict>
-        <key>title</key>
-        <string>Repositories</string>
-        <key>subTitle</key>
-        <string>Repos collaborating</string>
-        <key>iconName</key>
-        <string>iconRepositories</string>
-        <key>featureName</key>
-        <string>repositories</string>
-    </dict>
-    <dict>
-        <key>title</key>
-        <string>Public Activity</string>
-        <key>subTitle</key>
-        <string>Activity viewable by anyone</string>
-        <key>iconName</key>
-        <string>iconPublicActivity</string>
-        <key>featureName</key>
-        <string>publicActivity</string>
-    </dict>
+	<dict>
+	    <key>title</key>
+	    <string>Contributions</string>
+	    <key>subTitle</key>
+	    <string>Repos contributed to</string>
+	    <key>iconName</key>
+	    <string>iconContributions</string>
+	    <key>featureName</key>
+	    <string>contributions</string>
+	</dict>
+	<dict>
+	    <key>title</key>
+	    <string>Repositories</string>
+	    <key>subTitle</key>
+	    <string>Repos collaborating</string>
+	    <key>iconName</key>
+	    <string>iconRepositories</string>
+	    <key>featureName</key>
+	    <string>repositories</string>
+	</dict>
+	<dict>
+	    <key>title</key>
+	    <string>Public Activity</string>
+	    <key>subTitle</key>
+	    <string>Activity viewable by anyone</string>
+	    <key>iconName</key>
+	    <string>iconPublicActivity</string>
+	    <key>featureName</key>
+	    <string>publicActivity</string>
+	</dict>
 </array>
 </plist>
-~~~
+\~\~\~
 
-Next add following images to the asset catalog (Images.xcassets). They are included in the [finished project](http://goo.gl/WvUBDo).
+Next add following images to the asset catalog (Images.xcassets). They are included in the [finished project][21].
 
 * iconContributions@2x.png
 * iconRepositories@2x.png
@@ -359,139 +359,139 @@ Next add following images to the asset catalog (Images.xcassets). They are inclu
 
 Now modify `readMenuItems` method as shown below:
 
-~~~swift
-func readMenuItems() -> ([[String : String]]?, NSError?) {
-    var error: NSError? = nil
-    var fileContents: [[String : String]]? = nil    
-    let bundle = NSBundle(forClass: object_getClass(self))
-    
-    if let filePath = 
-        bundle.pathForResource(plistToReadFrom, ofType: "plist")
-    {
-        fileContents = 
-            NSArray(contentsOfFile: filePath) as? [[String : String]]
-    }
-    else {
-        let errorMessage = 
-            "\(plistToReadFrom!).plist file doesn't exist in app bundle"
-
-        let userInfo = [NSLocalizedDescriptionKey: errorMessage]
-        
-        error = NSError(domain: MenuItemsPlistReaderErrorDomain,
-            code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
-            userInfo: userInfo)
-    }
-
-    return (fileContents, error)
+\~\~\~swift
+func readMenuItems() -\> ([[String : String]]?, NSError?) {
+	var error: NSError? = nil
+	var fileContents: [[String : String]]? = nil    
+	let bundle = NSBundle(forClass: object_getClass(self))
+	
+	if let filePath = 
+	    bundle.pathForResource(plistToReadFrom, ofType: "plist")
+	{
+	    fileContents = 
+	        NSArray(contentsOfFile: filePath) as? [[String : String]]
+	}
+	else {
+	    let errorMessage = 
+	        "\(plistToReadFrom!).plist file doesn't exist in app bundle"
+	
+	    let userInfo = [NSLocalizedDescriptionKey: errorMessage]
+	
+	    error = NSError(domain: MenuItemsPlistReaderErrorDomain,
+	        code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
+	        userInfo: userInfo)
+	}
+	
+	return (fileContents, error)
 }
-~~~
+\~\~\~
 
 Now that the tests are passing, let's refactor by extracting the error building code into a separate method. Here is how `readMenuItems` method looks like after refactoring:
 
-~~~swift
-func readMenuItems() -> ([[String : String]]?, NSError?) {
-    var error: NSError? = nil
-    var fileContents: [[String : String]]? = nil
-    let bundle = NSBundle(forClass: object_getClass(self))
-    
-    if let filePath = 
-        bundle.pathForResource(plistToReadFrom, ofType: "plist") 
-    {
-        fileContents = 
-            NSArray(contentsOfFile: filePath) as? [[String : String]]
-    }
-    else {
-        error = fileNotFoundError()
-    }
-
-    return (fileContents, error)
+\~\~\~swift
+func readMenuItems() -\> ([[String : String]]?, NSError?) {
+	var error: NSError? = nil
+	var fileContents: [[String : String]]? = nil
+	let bundle = NSBundle(forClass: object_getClass(self))
+	
+	if let filePath = 
+	    bundle.pathForResource(plistToReadFrom, ofType: "plist") 
+	{
+	    fileContents = 
+	        NSArray(contentsOfFile: filePath) as? [[String : String]]
+	}
+	else {
+	    error = fileNotFoundError()
+	}
+	
+	return (fileContents, error)
 }
 
-func fileNotFoundError() -> NSError {
-    let errorMessage = 
-        "\(plistToReadFrom!).plist file doesn't exist in app bundle"
-
-    let userInfo = [NSLocalizedDescriptionKey: errorMessage]
-    
-    return NSError(domain: MenuItemsPlistReaderErrorDomain,
-        code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
-        userInfo: userInfo)
+func fileNotFoundError() -\> NSError {
+	let errorMessage = 
+	    "\(plistToReadFrom!).plist file doesn't exist in app bundle"
+	
+	let userInfo = [NSLocalizedDescriptionKey: errorMessage]
+	
+	return NSError(domain: MenuItemsPlistReaderErrorDomain,
+	    code: MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
+	    userInfo: userInfo)
 }
-~~~
+\~\~\~
 
 Run the tests again (*⌘U*) to make sure that we didn't break anything. I see some refactoring opportunity with our tests as well. Let's move the common code from all tests into `setup` method.
 
-~~~swift
+\~\~\~swift
 class MenuItemsPlistReaderTests: XCTestCase {
-    var plistReader: MenuItemsPlistReader?
-    var metadata: [[String : String]]?
-    var error: NSError?
-    
-    override func setUp() {
-        super.setUp()
-        plistReader = MenuItemsPlistReader()
-        plistReader?.plistToReadFrom = "notFound"
-        (metadata, error) = plistReader!.readMenuItems()
-    }
-    
-    func testCorrectErrorDomainIsReturnedWhenPlistDoesNotExist() {
-        let errorDomain = error?.domain
-        XCTAssertEqual(errorDomain!, MenuItemsPlistReaderErrorDomain,
-            "Correct error domain is returned")
-    }
-    
-    func testFileNotFoundErrorCodeIsReturnedWhenPlistDoesNotExist() {
-        let errorCode = error?.code
-        XCTAssertEqual(errorCode!, 
-            MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
-            "Correct error code is returned")
-    }
-    
-    func testCorrectErrorDescriptionIsReturnedWhenPlistDoesNotExist() {
-        let userInfo = error?.userInfo
-
-        let description: String = 
-            userInfo![NSLocalizedDescriptionKey]! as String
-
-        XCTAssertEqual(description, 
-            "notFound.plist file doesn't exist in app bundle",
-            "Correct error description is returned")
-    }
-    
-    func testPlistIsDeserializedCorrectly() {
-        plistReader!.plistToReadFrom = "menuItems"
-        (metadata, error) = plistReader!.readMenuItems()
-        
-        XCTAssertTrue(metadata?.count == 3, 
-            "There should only be three dictionaries in plist")
-        
-        let firstRow = metadata?[0]
-        XCTAssertEqual(firstRow!["title"]!, "Contributions",
-            "First row's title should be what's in plist")
-        XCTAssertEqual(firstRow!["subTitle"]!, "Repos contributed to",
-            "First row's subtitle should be what's in plist")
-        XCTAssertEqual(firstRow!["iconName"]!, "iconContributions",
-            "First row's icon name should be what's in plist")
-        
-        let secondRow = metadata?[1]
-        XCTAssertEqual(secondRow!["title"]!, "Repositories",
-            "Second row's title should be what's in plist")
-        XCTAssertEqual(secondRow!["subTitle"]!, "Repos collaborating",
-            "Second row's subtitle should be what's in plist")
-        XCTAssertEqual(secondRow!["iconName"]!, "iconRepositories",
-            "Second row's icon name should be what's in plist")
-        
-        let thirdRow = metadata?[2]
-        XCTAssertEqual(thirdRow!["title"]!, "Public Activity",
-            "Third row's title should be what's in plist")
-        XCTAssertEqual(thirdRow!["subTitle"]!, 
-            "Activity viewable by anyone",
-            "Third row's subtitle should be what's in plist")
-        XCTAssertEqual(thirdRow!["iconName"]!, "iconPublicActivity",
-            "Third row's icon name should be what's in plist")
-    }
+	var plistReader: MenuItemsPlistReader?
+	var metadata: [[String : String]]?
+	var error: NSError?
+	
+	override func setUp() {
+	    super.setUp()
+	    plistReader = MenuItemsPlistReader()
+	    plistReader?.plistToReadFrom = "notFound"
+	    (metadata, error) = plistReader!.readMenuItems()
+	}
+	
+	func testCorrectErrorDomainIsReturnedWhenPlistDoesNotExist() {
+	    let errorDomain = error?.domain
+	    XCTAssertEqual(errorDomain!, MenuItemsPlistReaderErrorDomain,
+	        "Correct error domain is returned")
+	}
+	
+	func testFileNotFoundErrorCodeIsReturnedWhenPlistDoesNotExist() {
+	    let errorCode = error?.code
+	    XCTAssertEqual(errorCode!, 
+	        MenuItemsPlistReaderErrorCode.FileNotFound.toRaw(),
+	        "Correct error code is returned")
+	}
+	
+	func testCorrectErrorDescriptionIsReturnedWhenPlistDoesNotExist() {
+	    let userInfo = error?.userInfo
+	
+	    let description: String = 
+	        userInfo![NSLocalizedDescriptionKey]! as String
+	
+	    XCTAssertEqual(description, 
+	        "notFound.plist file doesn't exist in app bundle",
+	        "Correct error description is returned")
+	}
+	
+	func testPlistIsDeserializedCorrectly() {
+	    plistReader!.plistToReadFrom = "menuItems"
+	    (metadata, error) = plistReader!.readMenuItems()
+	
+	    XCTAssertTrue(metadata?.count == 3, 
+	        "There should only be three dictionaries in plist")
+	
+	    let firstRow = metadata?[0]
+	    XCTAssertEqual(firstRow!["title"]!, "Contributions",
+	        "First row's title should be what's in plist")
+	    XCTAssertEqual(firstRow!["subTitle"]!, "Repos contributed to",
+	        "First row's subtitle should be what's in plist")
+	    XCTAssertEqual(firstRow!["iconName"]!, "iconContributions",
+	        "First row's icon name should be what's in plist")
+	
+	    let secondRow = metadata?[1]
+	    XCTAssertEqual(secondRow!["title"]!, "Repositories",
+	        "Second row's title should be what's in plist")
+	    XCTAssertEqual(secondRow!["subTitle"]!, "Repos collaborating",
+	        "Second row's subtitle should be what's in plist")
+	    XCTAssertEqual(secondRow!["iconName"]!, "iconRepositories",
+	        "Second row's icon name should be what's in plist")
+	
+	    let thirdRow = metadata?[2]
+	    XCTAssertEqual(thirdRow!["title"]!, "Public Activity",
+	        "Third row's title should be what's in plist")
+	    XCTAssertEqual(thirdRow!["subTitle"]!, 
+	        "Activity viewable by anyone",
+	        "Third row's subtitle should be what's in plist")
+	    XCTAssertEqual(thirdRow!["iconName"]!, "iconPublicActivity",
+	        "Third row's icon name should be what's in plist")
+	}
 }
-~~~
+\~\~\~
 
 I realized that we forgot to add a test for a scenario when the plist exists, but `readMenuItems` is unable to read it perhaps due to bad data. I will leave that as an exercise for you my dear readers.
 
@@ -501,56 +501,56 @@ I realized that we forgot to add a test for a scenario when the plist exists, bu
 
 우리는 우리가 지금 읽은 메타데이타에서 `MenuItem` 개체를 만들 준비가 되었다. 새로운 test 클래스의 이름을 `MenuItemBuilderTests`로 만들고 아래 내용을 작성하자:
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuItemBuilderTests: XCTestCase {
-    var menuItemBuilder: MenuItemBuilder?
-    var fakeMenuItemsReader: FakeMenuItemsReader?
-    var menuItems: [MenuItem]?
-    var error: NSError?
-    
-    override func setUp() {
-        fakeMenuItemsReader = FakeMenuItemsReader()
-        fakeMenuItemsReader!.missingTitle = true
-        let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
-        
-        menuItemBuilder = MenuItemBuilder()
-
-        (menuItems, error) = 
-            menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
-    }
-    
-    func testCorrectErrorDomainIsReturnedWhenTitleIsMissing() {
-        let errorDomain = error?.domain
-        XCTAssertEqual(errorDomain!, MenuItemBuilderErrorDomain,
-            "Correct error domain is returned")
-    }
-    
-    func testMissingTitleErrorCodeIsReturnedWhenTitleIsMissing() {
-        let errorCode = error?.code
-        XCTAssertEqual(errorCode!, 
-            MenuItemBuilderErrorCode.MissingTitle.toRaw(),
-            "Correct error code is returned")
-    }
-    
-    func testCorrectErrorDescriptionIsReturnedWhenTitleIsMissing() {
-        let userInfo = error?.userInfo
-        let description: String = 
-            userInfo![NSLocalizedDescriptionKey]! as String
-
-        XCTAssertEqual(description, 
-            "All menu items must have a title",
-            "Correct error description is returned")
-    }
-
-    func testEmptyArrayIsReturnedWhenErrorIsPresent() {
-        XCTAssertTrue(menuItems?.count == 0,
-            "No menu item instances are returned when error is present")
-    }
+	var menuItemBuilder: MenuItemBuilder?
+	var fakeMenuItemsReader: FakeMenuItemsReader?
+	var menuItems: [MenuItem]?
+	var error: NSError?
+	
+	override func setUp() {
+	    fakeMenuItemsReader = FakeMenuItemsReader()
+	    fakeMenuItemsReader!.missingTitle = true
+	    let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
+	
+	    menuItemBuilder = MenuItemBuilder()
+	
+	    (menuItems, error) = 
+	        menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
+	}
+	
+	func testCorrectErrorDomainIsReturnedWhenTitleIsMissing() {
+	    let errorDomain = error?.domain
+	    XCTAssertEqual(errorDomain!, MenuItemBuilderErrorDomain,
+	        "Correct error domain is returned")
+	}
+	
+	func testMissingTitleErrorCodeIsReturnedWhenTitleIsMissing() {
+	    let errorCode = error?.code
+	    XCTAssertEqual(errorCode!, 
+	        MenuItemBuilderErrorCode.MissingTitle.toRaw(),
+	        "Correct error code is returned")
+	}
+	
+	func testCorrectErrorDescriptionIsReturnedWhenTitleIsMissing() {
+	    let userInfo = error?.userInfo
+	    let description: String = 
+	        userInfo![NSLocalizedDescriptionKey]! as String
+	
+	    XCTAssertEqual(description, 
+	        "All menu items must have a title",
+	        "Correct error description is returned")
+	}
+	
+	func testEmptyArrayIsReturnedWhenErrorIsPresent() {
+	    XCTAssertTrue(menuItems?.count == 0,
+	        "No menu item instances are returned when error is present")
+	}
 }
-~~~
+\~\~\~
 
 Menu item은 반드시 title을 가져야 한다. 그러므로 우리는 `MenuItemBuilder`가 title이 아닌 에러를 리턴하는지 확인해야된다. 또한 menu item이 오류가 발생할때 비어있는 리스트를 리턴하는지 확인해야된다.
 
@@ -558,166 +558,166 @@ Menu item은 반드시 title을 가져야 한다. 그러므로 우리는 `MenuIt
 
 `FakeMenuItemsReader`는 다른 menu items에서 독자적으로 있을 경우 `MenuItemsReader`의 프로토콜을 준수 해야한다. 메타데이터를 파일이나 원격 서버로 부터 읽을때 이것은 항상 hard-coded 된 배열 dictionaries로 리턴한다. `FakeMenuItemsReader` 클래스를 만들고 더한하는건 오직 `AppMenuTests` 대상으로 한다. 우리는 이 클래스를 어떠한 어플리케이션 코드에서도 사용하지 않을 것이다. `FakeMenuItemsReader.swift` 파일의 내용을 대신 작성한다:
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 class FakeMenuItemsReader : MenuItemsReader {
-    var missingTitle: Bool = false
-    
-    func readMenuItems() -> ([[String : String]]?, NSError?) {
-        let menuItem1 = 
-            missingTitle ? menuItem1WithMissingTitle() 
-                         : menuItem1WithNoMissingTitle()
-        
-        let menuItem2 = ["title": "Menu Item 2",
-                         "subTitle": "Menu Item 2 subtitle",
-                         "iconName": "iconName2"]
-        
-        return ([menuItem1, menuItem2], nil)
-    }
-    
-    func menuItem1WithMissingTitle() -> [String : String] {
-        return ["subTitle": "Menu Item 1 subtitle",
-                "iconName": "iconName1"]
-    }
-    
-    func menuItem1WithNoMissingTitle() -> [String : String] {
-        var menuItem = menuItem1WithMissingTitle()
-        menuItem["title"] = "Menu Item 2"
-        return menuItem
-    }
+	var missingTitle: Bool = false
+	
+	func readMenuItems() -> ([[String : String]]?, NSError?) {
+	    let menuItem1 = 
+	        missingTitle ? menuItem1WithMissingTitle() 
+	                     : menuItem1WithNoMissingTitle()
+	
+	    let menuItem2 = ["title": "Menu Item 2",
+	                     "subTitle": "Menu Item 2 subtitle",
+	                     "iconName": "iconName2"]
+	
+	    return ([menuItem1, menuItem2], nil)
+	}
+	
+	func menuItem1WithMissingTitle() -> [String : String] {
+	    return ["subTitle": "Menu Item 1 subtitle",
+	            "iconName": "iconName1"]
+	}
+	
+	func menuItem1WithNoMissingTitle() -> [String : String] {
+	    var menuItem = menuItem1WithMissingTitle()
+	    menuItem["title"] = "Menu Item 2"
+	    return menuItem
+	}
 }
-~~~
+\~\~\~
 
 *가짜* 클래스들에 종종 생기는 한가지 관심사는 만약 원래 클래스들의 퍼블릭 API들의 바뀌는것이며 그것은 유효한 관심사다. 그렇지만 Swift가 컴파일 할때 에러가 발생할때 우리는 그것에 대해 걱정할 필요가 없다. 
 예를들어 만약 우리가 `MenuItemsReader` 프로토콜안의 `readMenuItems` 로부터 menu items의 non-optional 배열을 반환하기로 결정한 경우 우리는 모두 `MenuItemsPlistReader` 및 `FakeMenuItemsReader` 클래스에 그 변경 사항을 적용하도록 강요한다. 어서 시도해보자. Swift는 좋은방법인가?
 
-> 만약 너가 "alternate universe"를 더 배우길 원한다면 이러한 가짜 객체는 테스트에서 만들수 있습니다. 구체적인 예로 [Practical Object Oriented Design in Ruby](http://goo.gl/bbzSpz) 책의 챕터 9(*Creating Test Double* section)를 읽어 주십시요.
+> 만약 너가 "alternate universe"를 더 배우길 원한다면 이러한 가짜 객체는 테스트에서 만들수 있습니다. 구체적인 예로 [Practical Object Oriented Design in Ruby][22] 책의 챕터 9(*Creating Test Double* section)를 읽어 주십시요.
 
 *가짜* 객체의 다른 관심사는 그들이 잘못된 보안감각을 제공할 수 있다는 점이다. 우리는 어떻게 'MenuItemsPlistReader'와 'MenuItemBuilder'가 함께 작동하는지 잘 알수있을까요? 그 대답은 유닛테스트를 통해 하진 않을 것이다. 앱의 다른 유닛이 서로 잘 작동하는지 확인하는 작업은 통합테스트에서 주어지며 이 블로그에선 포함되어 있지 않다.
 
 *AppMenu* 그룹안에 'MenuItemBuilder'라는 이름의 새로운 Swift 클래스를 만들자. 모두 대상에 추가하고 다음과 같이 내용을 바꿉니다:
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 let MenuItemBuilderErrorDomain = "MenuItemBuilderErrorDomain"
 
 enum MenuItemBuilderErrorCode : Int {
-    case MissingTitle
+	case MissingTitle
 }
 
 class MenuItemBuilder {
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
-         -> ([MenuItem]?, NSError?) 
-    {
-        let userInfo = 
-            [NSLocalizedDescriptionKey: "All menu items must have a title"]
-
-        let error = NSError(domain: MenuItemBuilderErrorDomain,
-            code: MenuItemBuilderErrorCode.MissingTitle.toRaw(),
-            userInfo: userInfo)
-
-        return ([], error)
-    }
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
+	     -> ([MenuItem]?, NSError?) 
+	{
+	    let userInfo = 
+	        [NSLocalizedDescriptionKey: "All menu items must have a title"]
+	
+	    let error = NSError(domain: MenuItemBuilderErrorDomain,
+	        code: MenuItemBuilderErrorCode.MissingTitle.toRaw(),
+	        userInfo: userInfo)
+	
+	    return ([], error)
+	}
 }
-~~~
+\~\~\~
 
 우리는 에러 tests통과할 충분한 코드를 썻다. 다음으로 우리는 빌더가 정확한 수의 menu items를 만드는지 확인해야한다. `MenuItemBuilderTests` 클래스에 다음 테스트를 추가하자.
 
-~~~swift
+\~\~\~swift
 func testOneMenuItemInstanceIsReturnedForEachDictionary() {
-    fakeMenuItemsReader!.missingTitle = false
-    let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
-
-    (menuItems, _) =
-        menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
-    
-    XCTAssertTrue(menuItems?.count == 2,
-        "Number of menu items should be equal to number of dictionaries")
+	fakeMenuItemsReader!.missingTitle = false
+	let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
+	
+	(menuItems, _) =
+	    menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
+	
+	XCTAssertTrue(menuItems?.count == 2,
+	    "Number of menu items should be equal to number of dictionaries")
 }
-~~~
+\~\~\~
 
 Swift는 내가 관심없는 것은 `-`를 사용하여 리턴값을 무시하기 쉽고 이것은 내가 특별히 좋아하는 기능이다. `MenuItemBuilder` 클래스의 변경에 따라 모든 테스트를 통과 해야한다.
 
-~~~swift
+\~\~\~swift
 class MenuItemBuilder {
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
-         -> ([MenuItem]?, NSError?) 
-    {
-        var menuItems = [MenuItem]()
-        var error: NSError?
-        
-        for dictionary in metadata {
-            if let title = dictionary["title"] {
-                let menuItem = MenuItem(title: title)
-                menuItem.subTitle = dictionary["subTitle"]
-                menuItem.iconName = dictionary["iconName"]     
-                menuItems.append(menuItem)
-            }
-            else {
-                error = missingTitleError()
-                menuItems.removeAll(keepCapacity: false)
-                break
-            }
-        }
-        
-        return (menuItems, error)
-    }
-    
-    private func missingTitleError() -> NSError {
-        let userInfo = 
-            [NSLocalizedDescriptionKey: "All menu items must have a title"]
-
-        return NSError(domain: MenuItemBuilderErrorDomain,
-            code: MenuItemBuilderErrorCode.MissingTitle.toRaw(),
-            userInfo: userInfo)
-    }
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
+	     -> ([MenuItem]?, NSError?) 
+	{
+	    var menuItems = [MenuItem]()
+	    var error: NSError?
+	
+	    for dictionary in metadata {
+	        if let title = dictionary["title"] {
+	            let menuItem = MenuItem(title: title)
+	            menuItem.subTitle = dictionary["subTitle"]
+	            menuItem.iconName = dictionary["iconName"]     
+	            menuItems.append(menuItem)
+	        }
+	        else {
+	            error = missingTitleError()
+	            menuItems.removeAll(keepCapacity: false)
+	            break
+	        }
+	    }
+	
+	    return (menuItems, error)
+	}
+	
+	private func missingTitleError() -> NSError {
+	    let userInfo = 
+	        [NSLocalizedDescriptionKey: "All menu items must have a title"]
+	
+	    return NSError(domain: MenuItemBuilderErrorDomain,
+	        code: MenuItemBuilderErrorCode.MissingTitle.toRaw(),
+	        userInfo: userInfo)
+	}
 }
-~~~
+\~\~\~
 
 > 너는 내가 *red-green-refactor* 주기와 위의 변경을 엄격하게 수행하지 않은 것을 알수 있다. 나는 모든 테스트가 통과한 후 별도의 방법으로 error building code에서 추출해야합니다. 비록 나는 최소한의 코드를 써서 테스트를 통과하는 TDD의 첫번째 룰을 무시하는건 권장하지 않지만, 나는 이제 모든걸 정확하게 그리고 이 블로그 게시물이 너무 길지 않도록 할 것이다.
 `MenuItemBuilder`의 마지막 테스트는 metadata dictionaries에 있는 값으로 menu item의 인스턴스의 속성 값을 채웠는지 확인하는 것입니다.
 
-~~~swift
+\~\~\~swift
 func testMenuItemPropertiesContainValuesPresentInDictionary() {
-    fakeMenuItemsReader!.missingTitle = false
-    let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
-
-    (menuItems, _) = 
-        menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
-    
-    let rawDictionary1 = metadata![0]
-    let menuItem1 = menuItems![0]
-
-    XCTAssertEqual(menuItem1.title, 
-        rawDictionary1["title"]!,
-        "1st menu item's title should be what's in the 1st dictionary")
-
-    XCTAssertEqual(menuItem1.subTitle!, 
-        rawDictionary1["subTitle"]!,
-        "1st menu item's subTitle should be what's in the 1st dictionary")
-
-    XCTAssertEqual(menuItem1.iconName!, 
-        rawDictionary1["iconName"]!,
-        "1st menu item's icon name should be what's in the 1st dictionary")
-    
-    let rawDictionary2 = metadata![1]
-    let menuItem2 = menuItems![1]
-
-    XCTAssertEqual(menuItem2.title, 
-        rawDictionary2["title"]!,
-        "2nd menu item's title should be what's in the 2nd dictionary")
-
-    XCTAssertEqual(menuItem2.subTitle!, 
-        rawDictionary2["subTitle"]!,
-        "2nd menu item's subTitle should be what's in the 2nd dictionary")
-
-    XCTAssertEqual(menuItem2.iconName!, 
-        rawDictionary2["iconName"]!,
-        "2nd menu item's icon name should be what's in the 2nd dictionary")
+	fakeMenuItemsReader!.missingTitle = false
+	let (metadata, _) = fakeMenuItemsReader!.readMenuItems()
+	
+	(menuItems, _) = 
+	    menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
+	
+	let rawDictionary1 = metadata![0]
+	let menuItem1 = menuItems![0]
+	
+	XCTAssertEqual(menuItem1.title, 
+	    rawDictionary1["title"]!,
+	    "1st menu item's title should be what's in the 1st dictionary")
+	
+	XCTAssertEqual(menuItem1.subTitle!, 
+	    rawDictionary1["subTitle"]!,
+	    "1st menu item's subTitle should be what's in the 1st dictionary")
+	
+	XCTAssertEqual(menuItem1.iconName!, 
+	    rawDictionary1["iconName"]!,
+	    "1st menu item's icon name should be what's in the 1st dictionary")
+	
+	let rawDictionary2 = metadata![1]
+	let menuItem2 = menuItems![1]
+	
+	XCTAssertEqual(menuItem2.title, 
+	    rawDictionary2["title"]!,
+	    "2nd menu item's title should be what's in the 2nd dictionary")
+	
+	XCTAssertEqual(menuItem2.subTitle!, 
+	    rawDictionary2["subTitle"]!,
+	    "2nd menu item's subTitle should be what's in the 2nd dictionary")
+	
+	XCTAssertEqual(menuItem2.iconName!, 
+	    rawDictionary2["iconName"]!,
+	    "2nd menu item's icon name should be what's in the 2nd dictionary")
 }
-~~~
+\~\~\~
 
 다시한번, 우리는 이 테스트 내부에서 여러가지 주장을 사용하고 있다. 위의 테스트는 어떠힌 코드를 변경하지 않고 통과 해야한다.
 
@@ -730,68 +730,68 @@ func testMenuItemPropertiesContainValuesPresentInDictionary() {
 <a name="providing_data_to_table_view"></a>
 ### 테이블뷰에 데이터 제공
 
-우리는 테이블뷰의 데이터소스를 `MenuViewController`에 직접 구현을 하기 보다  분리된 객체를 사용할 것이다. `MenuViewController` 는 이미 뷰들을 관리하는 역할을 하고 있습니다. 나는 테이블뷰의 데이터를 미리 준비해서 [단일 책임 원칙](http://www.objectmentor.com/resources/articles/srp.pdf)을 위반하는 것을 피할 것이다. 그러나 첫번 째로 우리는 `MenuTableDefaultDataSource`에 일치하는 프로토콜을 만들것 이다. `MenuTableDataSource.swift`라는 스위프트 파일 파일을 *AppMenu* 그룹에 새로만들고. 파일의 타겟을 추가한 뒤 아래의 코드로 변경한다.
+우리는 테이블뷰의 데이터소스를 `MenuViewController`에 직접 구현을 하기 보다  분리된 객체를 사용할 것이다. `MenuViewController` 는 이미 뷰들을 관리하는 역할을 하고 있습니다. 나는 테이블뷰의 데이터를 미리 준비해서 [단일 책임 원칙][23]을 위반하는 것을 피할 것이다. 그러나 첫번 째로 우리는 `MenuTableDefaultDataSource`에 일치하는 프로토콜을 만들것 이다. `MenuTableDataSource.swift`라는 스위프트 파일 파일을 *AppMenu* 그룹에 새로만들고. 파일의 타겟을 추가한 뒤 아래의 코드로 변경한다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 protocol MenuTableDataSource : UITableViewDataSource {
-    func setMenuItems(menuItems: [MenuItem])
+	func setMenuItems(menuItems: [MenuItem])
 }
-~~~
+\~\~\~
 
 `MenuTableDataSource`는 `UITableViewDataSource` 로 부터 상속된 프로토콜이다. 또한 `setMenuItems` 메소드를 필수로 요구하고 있다. 이제 우리는 `MenuTableDefaultDataSource`의 테스트 작성이 준비됐다. `AppMenuTests` 타겟 안에서 `MenuTableDefaultDataSourceTests.swift` 라는 새로운 테스트 파일을 생성하고 다음의 코드를 추가한다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuTableDefaultDataSourceTests: XCTestCase {
-    func testReturnsOneRowForOneMenuItem() {
-        let testMenuItem = MenuItem(title: "Test menu item")
-        let menuItemsList = [testMenuItem]
-        
-        let dataSource = MenuTableDefaultDataSource()
-        dataSource.setMenuItems(menuItemsList)
-
-        let numberOfRows = 
-            dataSource.tableView(nil, numberOfRowsInSection:0)
-        
-        XCTAssertEqual(numberOfRows, 
-            menuItemsList.count,
-            "Only 1 row is returned since we're passing 1 menu item")
-    }
+	func testReturnsOneRowForOneMenuItem() {
+	    let testMenuItem = MenuItem(title: "Test menu item")
+	    let menuItemsList = [testMenuItem]
+	
+	    let dataSource = MenuTableDefaultDataSource()
+	    dataSource.setMenuItems(menuItemsList)
+	
+	    let numberOfRows = 
+	        dataSource.tableView(nil, numberOfRowsInSection:0)
+	
+	    XCTAssertEqual(numberOfRows, 
+	        menuItemsList.count,
+	        "Only 1 row is returned since we're passing 1 menu item")
+	}
 }
-~~~
+\~\~\~
 
 여기서 우리는 각각의 메뉴 아이템 데이터 소스가 하나의 데이블뷰 셀 인스턴스를 만들고 있다는 것을 확인했다. 이제 `MenuTableDefaultDataSource.swift` 라는 새로운 스위프트 파일을 만들고 아래의 코드를 입력한다.
 
-~~~swift
+\~\~\~swift
 import Foundation
 import UIKit
 
 class MenuTableDefaultDataSource : NSObject, MenuTableDataSource {
-    var menuItems: [MenuItem]?
-    
-    func setMenuItems(menuItems: [MenuItem]) {
-        self.menuItems = menuItems
-    }
-    
-    func tableView(tableView: UITableView!,
-                   numberOfRowsInSection section: Int)
-                   -> Int
-    {
-        return 1
-    }
-    
-    func tableView(tableView: UITableView!,
-                   cellForRowAtIndexPath indexPath: NSIndexPath!)
-                   -> UITableViewCell!
-    {
-        return nil;
-    }
+	var menuItems: [MenuItem]?
+	
+	func setMenuItems(menuItems: [MenuItem]) {
+	    self.menuItems = menuItems
+	}
+	
+	func tableView(tableView: UITableView!,
+	               numberOfRowsInSection section: Int)
+	               -> Int
+	{
+	    return 1
+	}
+	
+	func tableView(tableView: UITableView!,
+	               cellForRowAtIndexPath indexPath: NSIndexPath!)
+	               -> UITableViewCell!
+	{
+	    return nil;
+	}
 }
-~~~
+\~\~\~
 
 아직 우리는 테스트를 위한 `tableView:cellForRowAtIndexPath:` 메소드를 아직 작성하지 않았다. 우리는 요청에 대해 동작할 수 있는 구현이 테스트 이전에 필요하다. 이 작업은 `UITableViewDataSource` 프로토콜에서 요구하는 메소드가 있어야 하고 스위프트는 `MenuTableDefaultDataSource` 없이 컴파일을 할 수 없기 때문이다.
 
@@ -799,523 +799,523 @@ class MenuTableDefaultDataSource : NSObject, MenuTableDataSource {
 
 위의 테스트에서, 우리는 `tableView:numberOfRowsInSection:` 메서드에서 무조건 `1` 을 반환하도록 만들었다. 데이터 소스가 얼마나 많은 메뉴 아이템이 있든 항상 정확한 수를 반환하는지 증명하는 테스트를 추가한다.
 
-~~~swift
+\~\~\~swift
 func testReturnsTwoRowsForTwoMenuItems() {
-    let testMenuItem1 = MenuItem(title: "Test menu item 1")
-    let testMenuItem2 = MenuItem(title: "Test menu item 2")
-    let menuItemsList = [testMenuItem1, testMenuItem2]
-    
-    let dataSource = MenuTableDefaultDataSource()
-    dataSource.setMenuItems(menuItemsList)
-
-    let numberOfRows = 
-        dataSource.tableView(nil, numberOfRowsInSection:0)
-    
-    XCTAssertEqual(numberOfRows, 
-        menuItemsList.count,
-        "Returns two rows as we're passing two menu items")
+	let testMenuItem1 = MenuItem(title: "Test menu item 1")
+	let testMenuItem2 = MenuItem(title: "Test menu item 2")
+	let menuItemsList = [testMenuItem1, testMenuItem2]
+	
+	let dataSource = MenuTableDefaultDataSource()
+	dataSource.setMenuItems(menuItemsList)
+	
+	let numberOfRows = 
+	    dataSource.tableView(nil, numberOfRowsInSection:0)
+	
+	XCTAssertEqual(numberOfRows, 
+	    menuItemsList.count,
+	    "Returns two rows as we're passing two menu items")
 }
-~~~
+\~\~\~
 
 `menuItems` 는 테스트를 통과하기 위해 하드코딩된 `1` 대신 실제 카운트 값을 반환한다.
 
-~~~swift
+\~\~\~swift
 func tableView(tableView: UITableView!,
-               numberOfRowsInSection section: Int)
-               -> Int
+	           numberOfRowsInSection section: Int)
+	           -> Int
 {
-    return menuItems!.count
+	return menuItems!.count
 }
-~~~
+\~\~\~
 
 또한 우리는 데이터소스가 정확한 섹션의 갯수를 반환하는지 확인이 필요하다. 여기 그것에 대한 테스트이다:
 
-~~~swift
+\~\~\~swift
 func testReturnsOnlyOneSection() {
-    let dataSource = MenuTableDefaultDataSource()
-    let numberOfSections = dataSource.numberOfSectionsInTableView(nil)
-    XCTAssertEqual(numberOfSections, 1, 
-        "There should only be one section")
+	let dataSource = MenuTableDefaultDataSource()
+	let numberOfSections = dataSource.numberOfSectionsInTableView(nil)
+	XCTAssertEqual(numberOfSections, 1, 
+	    "There should only be one section")
 }
-~~~
+\~\~\~
 
 `numberOfSectionsInTableView` 메서드로부터 리턴되는 `1` 은 이전 테스트의 통과를 시키기 위해 만들었다. 또한 이 메서드는 `UITableViewDataSource` 프로토콜에서 필수로 요구되는 메서드는 아니다. 그리고 기본적으로 이미 `1` 이 리턴되고 있다. 우리는 테스트로 부터 명령이 가능한 호출에 대해 구현이 필요하다.
 
-~~~swift
-func numberOfSectionsInTableView(tableView: UITableView!) -> Int {
-    return 1
+\~\~\~swift
+func numberOfSectionsInTableView(tableView: UITableView!) -\> Int {
+	return 1
 }
-~~~
+\~\~\~
 
 > 또 다른 테스트로 검증을 위해 작성하기 좋은것으로 데이터소스로 부터 예외처리를 발생시키는 것이다. 섹션안에 행의 숫자 인덱스를 0이 아닌 다른숫자로 입력하라고 묻는것 이라면, 하지만 우리의 오래된 친구 `XCTAssertThrows` 를 Xcode 6의 XCTest에서는 찾을 수 없다. 그래서 예외상황이 발생된 상황을 다르게 증명하는 방법을 모르겠다.
 
 iOS에서 모든 뷰의 테스트를 하는건 상당히 지루할 수 있다. 나는 최소의 뷰만 테스트하는 경향이 있다. 이말은 대표적인 뷰들만 테스트를 하는것인데, 이 경우에는 각각의 메뉴를 대표하는 테이블뷰 셀만 테스트를 하는것이다. 그러므로, 나는 각각의 메뉴 아이템으로 부터의 대표적인 셀만 증명하는 것을 선호한다. 아래의 코드를 참고하자.
 
-~~~swift
+\~\~\~swift
 func testEachCellContainsTitleForRespectiveMenuItem() {
-    let testMenuItem = MenuItem(title: "Test menu item")
-    let dataSource = MenuTableDefaultDataSource()
-    dataSource.setMenuItems([testMenuItem])
-    
-    let firstMenuItem = NSIndexPath(forRow: 0, inSection: 0)
-    let cell = 
-        dataSource.tableView(nil, cellForRowAtIndexPath: firstMenuItem)
-    
-    XCTAssertEqual(cell.textLabel.text!, 
-        "Test menu item",
-        "A cell contains the title of a menu item it's representing")
+	let testMenuItem = MenuItem(title: "Test menu item")
+	let dataSource = MenuTableDefaultDataSource()
+	dataSource.setMenuItems([testMenuItem])
+	
+	let firstMenuItem = NSIndexPath(forRow: 0, inSection: 0)
+	let cell = 
+	    dataSource.tableView(nil, cellForRowAtIndexPath: firstMenuItem)
+	
+	XCTAssertEqual(cell.textLabel.text!, 
+	    "Test menu item",
+	    "A cell contains the title of a menu item it's representing")
 }
-~~~
+\~\~\~
 
 `tableView:cellForRowAtIndexPath:` 메서드는 이전에 테스트가 통과되도록 변경해야 한다.
 
-~~~swift
+\~\~\~swift
 func tableView(tableView: UITableView!,
-    cellForRowAtIndexPath indexPath: NSIndexPath!)
-    -> UITableViewCell!
+	cellForRowAtIndexPath indexPath: NSIndexPath!)
+	-> UITableViewCell!
 {
-    // Ideally we should be reusing table view cells here
-    let cell = UITableViewCell(style: .Subtitle, reuseIdentifier: nil)
-    let menuItem = menuItems?[indexPath.row]
-    
-    cell.textLabel.text = menuItem?.title
-    cell.detailTextLabel.text = menuItem?.subTitle
-    cell.imageView.image = UIImage(named: menuItem?.iconName)
-    cell.accessoryType = .DisclosureIndicator
-    
-    return cell
+	// Ideally we should be reusing table view cells here
+	let cell = UITableViewCell(style: .Subtitle, reuseIdentifier: nil)
+	let menuItem = menuItems?[indexPath.row]
+	
+	cell.textLabel.text = menuItem?.title
+	cell.detailTextLabel.text = menuItem?.subTitle
+	cell.imageView.image = UIImage(named: menuItem?.iconName)
+	cell.accessoryType = .DisclosureIndicator
+	
+	return cell
 }
-~~~
+\~\~\~
 
 `MenuTableDefaultDataSource` 테스트를 위한 리팩토링을 해보자. 우리는 예전에 `setup` 메서드에서 공통 코드를 추출했었다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuTableDefaultDataSourceTests: XCTestCase {
-    var dataSource: MenuTableDefaultDataSource?
-    var menuItemsList: [MenuItem]?
-    
-    override func setUp() {
-        super.setUp()
-        
-        let testMenuItem = MenuItem(title: "Test menu item")
-        menuItemsList = [testMenuItem]
-        
-        dataSource = MenuTableDefaultDataSource()
-        dataSource!.setMenuItems(menuItemsList!)
-    }
-    
-    func testReturnsOneRowForOneMenuItem() {
-        let numberOfRows = 
-            dataSource!.tableView(nil, numberOfRowsInSection:0)
-
-        XCTAssertEqual(numberOfRows, 
-            menuItemsList!.count,
-            "Only one row is returned since we're passing one menu item")
-    }
-    
-    func testReturnsTwoRowsForTwoMenuItems() {
-        let testMenuItem1 = MenuItem(title: "Test menu item 1")
-        let testMenuItem2 = MenuItem(title: "Test menu item 2")
-        let menuItemsList = [testMenuItem1, testMenuItem2]
-        
-        dataSource!.setMenuItems(menuItemsList)
-        let numberOfRows = 
-            dataSource!.tableView(nil, numberOfRowsInSection:0)
-        
-        XCTAssertEqual(numberOfRows, 
-            menuItemsList.count,
-            "Returns two rows as we're passing two menu items")
-    }
-    
-    func testReturnsOnlyOneSection() {
-        let numberOfSections = 
-            dataSource!.numberOfSectionsInTableView(nil)
-
-        XCTAssertEqual(numberOfSections, 1, 
-            "There should only be one section")
-    }
-    
-    func testEachCellContainsTitleForRespectiveMenuItem() {
-        let firstMenuItem = NSIndexPath(forRow: 0, inSection: 0)
-        let cell = 
-            dataSource!.tableView(nil, 
-                cellForRowAtIndexPath: firstMenuItem)
-        
-        XCTAssertEqual(cell.textLabel.text!, 
-            "Test menu item",
-            "A cell contains the title of a menu item it's representing")
-    }
+	var dataSource: MenuTableDefaultDataSource?
+	var menuItemsList: [MenuItem]?
+	
+	override func setUp() {
+	    super.setUp()
+	
+	    let testMenuItem = MenuItem(title: "Test menu item")
+	    menuItemsList = [testMenuItem]
+	
+	    dataSource = MenuTableDefaultDataSource()
+	    dataSource!.setMenuItems(menuItemsList!)
+	}
+	
+	func testReturnsOneRowForOneMenuItem() {
+	    let numberOfRows = 
+	        dataSource!.tableView(nil, numberOfRowsInSection:0)
+	
+	    XCTAssertEqual(numberOfRows, 
+	        menuItemsList!.count,
+	        "Only one row is returned since we're passing one menu item")
+	}
+	
+	func testReturnsTwoRowsForTwoMenuItems() {
+	    let testMenuItem1 = MenuItem(title: "Test menu item 1")
+	    let testMenuItem2 = MenuItem(title: "Test menu item 2")
+	    let menuItemsList = [testMenuItem1, testMenuItem2]
+	
+	    dataSource!.setMenuItems(menuItemsList)
+	    let numberOfRows = 
+	        dataSource!.tableView(nil, numberOfRowsInSection:0)
+	
+	    XCTAssertEqual(numberOfRows, 
+	        menuItemsList.count,
+	        "Returns two rows as we're passing two menu items")
+	}
+	
+	func testReturnsOnlyOneSection() {
+	    let numberOfSections = 
+	        dataSource!.numberOfSectionsInTableView(nil)
+	
+	    XCTAssertEqual(numberOfSections, 1, 
+	        "There should only be one section")
+	}
+	
+	func testEachCellContainsTitleForRespectiveMenuItem() {
+	    let firstMenuItem = NSIndexPath(forRow: 0, inSection: 0)
+	    let cell = 
+	        dataSource!.tableView(nil, 
+	            cellForRowAtIndexPath: firstMenuItem)
+	
+	    XCTAssertEqual(cell.textLabel.text!, 
+	        "Test menu item",
+	        "A cell contains the title of a menu item it's representing")
+	}
 }
-~~~
+\~\~\~
 
 <a name="handling_menu_item_tap_event"></a>
 ### Handling Menu Item Tap Event (메뉴 아이템 탭 이벤트 핸들링)
 
 테이블뷰 설정은 보는것과 같이 굉장히 간단하다. 그러므로, 데이터소스나 델리게이트 같은 오브젝트의 사용도 이해가 될것이다. 테이블 뷰의 셀이 탭될때 데이터소스는 알림을 보낼 것이다. `MenuViewController` (또는 관심이 있는 다른 클래스) 는 어떤 셀이 탭이 되었고 어떤 액션을 받을 것인지 찾기위해 신호를 보낼 수 있다.
 
-[![table_view_architecture.png](https://d23f6h5jpj26xu.cloudfront.net/9pmnjzuddxpv3g.png)](http://img.svbtle.com/9pmnjzuddxpv3g.png)
+[![table\_view\_architecture.png][image-4]][24]
 
-이 디자인은 [Test-Driven iOS Development](http://goo.gl/iiKpC1) 책의 챕터 9로 부터 약간의 영감을 받았다. 그럼 `MenuTableDataSource` 프로토콜에 델리게이트와 관련된 세부항목을 추가하자.
+이 디자인은 [Test-Driven iOS Development][25] 책의 챕터 9로 부터 약간의 영감을 받았다. 그럼 `MenuTableDataSource` 프로토콜에 델리게이트와 관련된 세부항목을 추가하자.
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 let MenuTableDataSourceDidSelectItemNotification = 
-    "MenuTableDataSourceDidSelectItemNotification"
+	"MenuTableDataSourceDidSelectItemNotification"
 
 protocol MenuTableDataSource : UITableViewDataSource, UITableViewDelegate {
-    func setMenuItems(menuItems: [MenuItem])
+	func setMenuItems(menuItems: [MenuItem])
 }
-~~~
+\~\~\~
 
 이제 우리는 데이터소스가 정말로 테이블뷰의 아이템이 탭되었을 때 알림을 보내는지 알수 있는 증명이 필요하다. 다음과 같이 테스트해볼 것이다.
 
-~~~swift
+\~\~\~swift
 class MenuTableDefaultDataSourceTests: XCTestCase {
-    var dataSource: MenuTableDefaultDataSource?
-    var testMenuItem: MenuItem?
-    var menuItemsList: [MenuItem]?
-    var postedNotification: NSNotification?
-    var selectedIndexPath: NSIndexPath?
-    
-    override func setUp() {
-        super.setUp()
-        
-        testMenuItem = MenuItem(title: "Test menu item")
-        menuItemsList = [testMenuItem!]
-        selectedIndexPath = NSIndexPath(forRow: 0, inSection: 0)
-        
-        dataSource = MenuTableDefaultDataSource()
-        dataSource!.setMenuItems(menuItemsList!)
-        
-        let notificationCenter = NSNotificationCenter.defaultCenter()
-        notificationCenter.addObserver(self,
-            selector: "didReceiveNotification:",
-            name: MenuTableDataSourceDidSelectItemNotification,
-            object: nil)
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        postedNotification = nil
-        NSNotificationCenter.defaultCenter().removeObserver(self)
-    }
-    
-    func didReceiveNotification(notification: NSNotification) {
-        postedNotification = notification
-    }
-    
-    func testANotificationIsPostedWhenACellIsTapped() {
-        dataSource!.tableView(nil, 
-            didSelectRowAtIndexPath:selectedIndexPath)
-
-        XCTAssertEqual(postedNotification!.name, 
-            MenuTableDataSourceDidSelectItemNotification,
-            "Data source posts a notification when a cell is tapped")
-    }
-    
-    func testPostedNotificationContainsMenuItemInfo() {
-        dataSource!.tableView(nil, 
-            didSelectRowAtIndexPath:selectedIndexPath)
-
-        XCTAssertTrue(postedNotification!.object.isEqual(testMenuItem!),
-            "Notification contains menu item object")
-    }
-
-    // Previous tests for data source are excluded here...
+	var dataSource: MenuTableDefaultDataSource?
+	var testMenuItem: MenuItem?
+	var menuItemsList: [MenuItem]?
+	var postedNotification: NSNotification?
+	var selectedIndexPath: NSIndexPath?
+	
+	override func setUp() {
+	    super.setUp()
+	
+	    testMenuItem = MenuItem(title: "Test menu item")
+	    menuItemsList = [testMenuItem!]
+	    selectedIndexPath = NSIndexPath(forRow: 0, inSection: 0)
+	
+	    dataSource = MenuTableDefaultDataSource()
+	    dataSource!.setMenuItems(menuItemsList!)
+	
+	    let notificationCenter = NSNotificationCenter.defaultCenter()
+	    notificationCenter.addObserver(self,
+	        selector: "didReceiveNotification:",
+	        name: MenuTableDataSourceDidSelectItemNotification,
+	        object: nil)
+	}
+	
+	override func tearDown() {
+	    super.tearDown()
+	    postedNotification = nil
+	    NSNotificationCenter.defaultCenter().removeObserver(self)
+	}
+	
+	func didReceiveNotification(notification: NSNotification) {
+	    postedNotification = notification
+	}
+	
+	func testANotificationIsPostedWhenACellIsTapped() {
+	    dataSource!.tableView(nil, 
+	        didSelectRowAtIndexPath:selectedIndexPath)
+	
+	    XCTAssertEqual(postedNotification!.name, 
+	        MenuTableDataSourceDidSelectItemNotification,
+	        "Data source posts a notification when a cell is tapped")
+	}
+	
+	func testPostedNotificationContainsMenuItemInfo() {
+	    dataSource!.tableView(nil, 
+	        didSelectRowAtIndexPath:selectedIndexPath)
+	
+	    XCTAssertTrue(postedNotification!.object.isEqual(testMenuItem!),
+	        "Notification contains menu item object")
+	}
+	
+	// Previous tests for data source are excluded here...
 }
-~~~
+\~\~\~
  
-`setup` 메서드 안에서, 우리는 `MenuTableDataSourceDidSelectItemNotification` 라는 이름의 노티피케이션 옵져버를 테스트 클래스에 추가했었다. 알림이 도착할 때, `didReceiveNotification:` 메서드는 호출될 것이다. 노피티케이션 오브젝트는 `postedNotification` 변수에 저장된다. 그때 우리는 이것이 정확한 이름과 메뉴 아이템 인스턴스라는 것이 증명된다. 여기서 중요하게 생각해야 할 점은 `tearDown` 메서드 안에 옵져버가 테스트 클래스를 지운다는 것이다. 우리는 [NSNotificationCenter](http://goo.gl/TfnJ3T) 에서 노티피케이션이 보내졌을때 확인 할 수 있는 API를 제공하지 않기 때문에 이 복잡한 프로세스를 통해서 노티피케이션이 정말로 보내지는지 증명할 수 있었다. 
+`setup` 메서드 안에서, 우리는 `MenuTableDataSourceDidSelectItemNotification` 라는 이름의 노티피케이션 옵져버를 테스트 클래스에 추가했었다. 알림이 도착할 때, `didReceiveNotification:` 메서드는 호출될 것이다. 노피티케이션 오브젝트는 `postedNotification` 변수에 저장된다. 그때 우리는 이것이 정확한 이름과 메뉴 아이템 인스턴스라는 것이 증명된다. 여기서 중요하게 생각해야 할 점은 `tearDown` 메서드 안에 옵져버가 테스트 클래스를 지운다는 것이다. 우리는 [NSNotificationCenter][26] 에서 노티피케이션이 보내졌을때 확인 할 수 있는 API를 제공하지 않기 때문에 이 복잡한 프로세스를 통해서 노티피케이션이 정말로 보내지는지 증명할 수 있었다. 
 
-> [Building Menu Items](#building_menu_items) 섹션 안에서 나는 가짜 오브젝트를 사용하는 것을 추천한다. 그러나, 나는 위에 테스트에서 `NSNotificationCenter` 클래스를 사용했다. 일반적으로 나는 애플 프레임워크에서 제공되는 오브젝트의 대체되는 다른것을 사용하지 않는다. 그들은 신뢰할 수 있는 용어와 속도를 공평하게 한다. 그 들이 말하기를 만약 당신의 테스트에서 애플 프레임워크로 부터 제공하는 객체의 사용이 줄어든다면 그들을 위해서 테스트를 대체하기 위한 다른걸 만드는 것을 주저하지 않을 것이다.
+> [Building Menu Items][27] 섹션 안에서 나는 가짜 오브젝트를 사용하는 것을 추천한다. 그러나, 나는 위에 테스트에서 `NSNotificationCenter` 클래스를 사용했다. 일반적으로 나는 애플 프레임워크에서 제공되는 오브젝트의 대체되는 다른것을 사용하지 않는다. 그들은 신뢰할 수 있는 용어와 속도를 공평하게 한다. 그 들이 말하기를 만약 당신의 테스트에서 애플 프레임워크로 부터 제공하는 객체의 사용이 줄어든다면 그들을 위해서 테스트를 대체하기 위한 다른걸 만드는 것을 주저하지 않을 것이다.
 
 `MenuTableDefaultDataSource` 클래스 안에서 `UITableViewDataSource` 프로토콜로 부터 `tableView:didSelectRowAtIndexPath:` 메서드가 테스트를 통과 하도록 구현한다.
 
-~~~swift
+\~\~\~swift
 func tableView(tableView: UITableView!,
-    didSelectRowAtIndexPath indexPath: NSIndexPath!)
+	didSelectRowAtIndexPath indexPath: NSIndexPath!)
 {
-    let menuItem = menuItems?[indexPath.row]
-
-    let notification = 
-        NSNotification(name: MenuTableDataSourceDidSelectItemNotification,
-                       object:menuItem)
-
-    NSNotificationCenter.defaultCenter().postNotification(notification)
+	let menuItem = menuItems?[indexPath.row]
+	
+	let notification = 
+	    NSNotification(name: MenuTableDataSourceDidSelectItemNotification,
+	                   object:menuItem)
+	
+	NSNotificationCenter.defaultCenter().postNotification(notification)
 }
-~~~
+\~\~\~
 
 <a name="managing_menu_table_view"></a>
 ### Managing Menu Table View (메뉴 테이블 뷰 관리)
 
 `MenuViewController` 는 테이블뷰와 메뉴에서 보여줄 모든 필요한 뷰들을 관리하는 역할을 할 것이다. 첫번째로 우리는 필요한 데이터소스를 만들야 한다. 또한 테이블뷰와 타이틀이 확실히 필요하다. 새로운 테스트 파일 `MenuViewControllerTests.swift` 을 만들고 아래의 내용을 추가한다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuViewControllerTests: XCTestCase {
-    var menuViewController: MenuViewController?
-    var dataSource: MenuTableDataSource?
-    var tableView: UITableView?
-    
-    override func setUp() {
-        super.setUp()
-        dataSource = MenuTableFakeDataSource()
-        tableView = UITableView()
-        
-        menuViewController = MenuViewController()
-        menuViewController?.dataSource = dataSource
-        menuViewController?.tableView = tableView
-    }
-
-    func testHasATitle() {
-        menuViewController?.viewDidLoad()
-        XCTAssertEqual(menuViewController!.title!, "App Menu",
-            "Menu view should show a proper title")
-    }
-    
-    func testCanBeAssignedADataSource() {
-        XCTAssertTrue(dataSource!.isEqual(menuViewController?.dataSource),
-            "A data source can be assigned to a menu view controller")
-    }
-    
-    func testHasATableView() {
-        XCTAssertTrue(tableView!.isEqual(menuViewController?.tableView),
-            "Menu view controller has a table view")
-    }
+	var menuViewController: MenuViewController?
+	var dataSource: MenuTableDataSource?
+	var tableView: UITableView?
+	
+	override func setUp() {
+	    super.setUp()
+	    dataSource = MenuTableFakeDataSource()
+	    tableView = UITableView()
+	
+	    menuViewController = MenuViewController()
+	    menuViewController?.dataSource = dataSource
+	    menuViewController?.tableView = tableView
+	}
+	
+	func testHasATitle() {
+	    menuViewController?.viewDidLoad()
+	    XCTAssertEqual(menuViewController!.title!, "App Menu",
+	        "Menu view should show a proper title")
+	}
+	
+	func testCanBeAssignedADataSource() {
+	    XCTAssertTrue(dataSource!.isEqual(menuViewController?.dataSource),
+	        "A data source can be assigned to a menu view controller")
+	}
+	
+	func testHasATableView() {
+	    XCTAssertTrue(tableView!.isEqual(menuViewController?.tableView),
+	        "Menu view controller has a table view")
+	}
 }
-~~~
+\~\~\~
 
 여기에 실제 데이터 소스를 사용하는 것 대신에, 우리는 `MenuTableFakeDataSource` 라는 이름의 가짜 데이터를 사용할 것이다. `AppMenuTests` 안에 `MenuTableFakeDataSource.swift` 라는 이름의 스위프트 파일을 생성하고 타겟을 정하고 다음의 코드로 대체한다.
 
-~~~swift
+\~\~\~swift
 import Foundation
 import UIKit
 
 class MenuTableFakeDataSource : NSObject, MenuTableDataSource {
-    func setMenuItems(menuItems: [MenuItem]) {
-    }
-    
-    // MARK: - UITableView data source methods
-    
-    func tableView(tableView: UITableView!,
-                   numberOfRowsInSection section: Int)
-                   -> Int
-    {
-        return 1
-    }
-    
-    func tableView(tableView: UITableView!,
-                   cellForRowAtIndexPath indexPath: NSIndexPath!)
-                   -> UITableViewCell!
-    {
-        return nil
-    }
+	func setMenuItems(menuItems: [MenuItem]) {
+	}
+	
+	// MARK: - UITableView data source methods
+	
+	func tableView(tableView: UITableView!,
+	               numberOfRowsInSection section: Int)
+	               -> Int
+	{
+	    return 1
+	}
+	
+	func tableView(tableView: UITableView!,
+	               cellForRowAtIndexPath indexPath: NSIndexPath!)
+	               -> UITableViewCell!
+	{
+	    return nil
+	}
 }
-~~~
+\~\~\~
 
-모든 `MenuTableFakeDataSource` 은 `MenuTableDataSource` 프로토콜 안의 필요 메서들 구현을 요구한다. 그리고 `MenuTableDataSource` 에 일치하는 모든 객체들을 대신한다. 지금 `MenuViewController` 클래스를 생성한다. (*AppMenu 그룹을 오른쪽으로 클릭 > New File > iOS > Source > Cocoa Touch Class*). `UIViewController` 의 서브클래스로 생성한다 그리고 *Also create XIB file* 체크박스도 선택한다. 그리고 절대 타겟을 두개다 추가하는 것을 잊지말자. 이 작업은 위의 선언된 두개의 구역과 타이틀을 선정하기 위한 테스트를 통과 하기 위함이다.
+모든 `MenuTableFakeDataSource` 은 `MenuTableDataSource` 프로토콜 안의 필요 메서들 구현을 요구한다. 그리고 `MenuTableDataSource` 에 일치하는 모든 객체들을 대신한다. 지금 `MenuViewController` 클래스를 생성한다. (*AppMenu 그룹을 오른쪽으로 클릭 \> New File \> iOS \> Source \> Cocoa Touch Class*). `UIViewController` 의 서브클래스로 생성한다 그리고 *Also create XIB file* 체크박스도 선택한다. 그리고 절대 타겟을 두개다 추가하는 것을 잊지말자. 이 작업은 위의 선언된 두개의 구역과 타이틀을 선정하기 위한 테스트를 통과 하기 위함이다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 class MenuViewController: UIViewController {
-    @IBOutlet weak var tableView: UITableView!
-    var dataSource: MenuTableDataSource?
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        title = "App Menu"
-    }
+	@IBOutlet weak var tableView: UITableView!
+	var dataSource: MenuTableDataSource?
+	
+	override func viewDidLoad() {
+	    super.viewDidLoad()
+	    title = "App Menu"
+	}
 }
-~~~
+\~\~\~
 
 `MenuViewCOntroller.xib` 의 메인뷰 사이즈는 *Attricbutes Inspector* 섹션 안에서 *Simulated Metrics* 을 *iPhont 4-inch* 로 변경한다. 뷰의 오리엔테이션은 *Portrait* 로 설정한다. 메인 뷰의 서브뷰, 테이블뷰 같은 뷰들을 추가한 후에. `MenuViewController` 클래스의 `tableView` 아울렛을 XIB의 테이블뷰와 연결한다.
 
-다음으로 우리는 `MenuViewController` 의 델리게이트와 데이터소스 영역들에 대한 설정들을 우리가 정한 데이터 소스 객체로 지정해야 한다. [viewDidLoad](http://goo.gl/OeT0hV) 메서드는 우리가 원하는 연결을 정할 수 있는 곳이다. 다음 테스트를 코드를 확인하자.
+다음으로 우리는 `MenuViewController` 의 델리게이트와 데이터소스 영역들에 대한 설정들을 우리가 정한 데이터 소스 객체로 지정해야 한다. [viewDidLoad][28] 메서드는 우리가 원하는 연결을 정할 수 있는 곳이다. 다음 테스트를 코드를 확인하자.
 
-~~~swift
+\~\~\~swift
 func testTableViewIsGivenADataSourceInViewDidLoad() {
-    menuViewController?.viewDidLoad()
-    XCTAssertTrue(tableView!.dataSource.isEqual(dataSource),
-        "Data source for the menu table view is set in viewDidLoad method")
+	menuViewController?.viewDidLoad()
+	XCTAssertTrue(tableView!.dataSource.isEqual(dataSource),
+	    "Data source for the menu table view is set in viewDidLoad method")
 }
 
 func testTableViewIsGivenADelegateInViewDidLoad() {
-    menuViewController?.viewDidLoad()
-    XCTAssertTrue(tableView!.delegate.isEqual(dataSource),
-        "Delegate for the menu table view is set in viewDidLoad method")
+	menuViewController?.viewDidLoad()
+	XCTAssertTrue(tableView!.delegate.isEqual(dataSource),
+	    "Delegate for the menu table view is set in viewDidLoad method")
 }
-~~~
+\~\~\~
 
 위의 테스트를 통과 시키기 위해 `viewDidLoad` 안에서 테이블뷰의 데이터소스와 델리게이트를 연결한다.
 
 Set table view's data source and delegate properties in `viewDidLoad` to make above tests pass.
 
-~~~swift
+\~\~\~swift
 override func viewDidLoad() {
-    super.viewDidLoad()
-    title = "App Menu"
-    tableView.dataSource = dataSource
-    tableView.delegate = dataSource
+	super.viewDidLoad()
+	title = "App Menu"
+	tableView.dataSource = dataSource
+	tableView.delegate = dataSource
 }
-~~~
+\~\~\~
 
-[Handling Menu Item Tap Event](#handling_menu_item_tap_event) 에서 우리는 메뉴 아이템을 탭했을 때  `MenuTableDefaultDataSource` 가 노티피케이션을 보내는 것을 만들었었다. `MenuViewController` 는 노티피케이션을 받아서 정확한 메뉴 아이템의 뷰인지 확인할 수 있는 것이 필요하다. 만약 그 노티피케이션이 도착했는데 `MenuViewController` 의 뷰가 감춰져 있다면, 그건 무시될 것이다. 그러므로, `viewDidAppear:` 메서드에서 노티피케이션을 등록해야한다. 또한 `viewDidDisaapear:` 메서드 안에서 해체를 해주어야 한다. 다음의 테스트를 통해서 요구하는 것을 확인하자.
+[Handling Menu Item Tap Event][29] 에서 우리는 메뉴 아이템을 탭했을 때  `MenuTableDefaultDataSource` 가 노티피케이션을 보내는 것을 만들었었다. `MenuViewController` 는 노티피케이션을 받아서 정확한 메뉴 아이템의 뷰인지 확인할 수 있는 것이 필요하다. 만약 그 노티피케이션이 도착했는데 `MenuViewController` 의 뷰가 감춰져 있다면, 그건 무시될 것이다. 그러므로, `viewDidAppear:` 메서드에서 노티피케이션을 등록해야한다. 또한 `viewDidDisaapear:` 메서드 안에서 해체를 해주어야 한다. 다음의 테스트를 통해서 요구하는 것을 확인하자.
 
-~~~swift
+\~\~\~swift
 let postedNotification = "MenuViewControllerTestsPostedNotification"
 
 class MenuViewControllerTests: XCTestCase {
-    var menuViewController: MenuViewController?
-    var dataSource: MenuTableDataSource?
-    var tableView: UITableView?
-    
-    override func setUp() {
-        super.setUp()
-        dataSource = MenuTableFakeDataSource()
-        tableView = UITableView()
-        
-        menuViewController = MenuViewController()
-        menuViewController?.dataSource = dataSource
-        menuViewController?.tableView = tableView
-    }
-
-    override func tearDown() {
-        super.tearDown()        
-        objc_removeAssociatedObjects(menuViewController)
-    }
-    
-    // ...
-
-    func testRegistrationForNotificationHappensInViewDidAppear() {
-        swizzleNotificationHandler()
-        menuViewController?.viewDidAppear(false)
-        
-        let notification =
-            NSNotification(
-                name: MenuTableDataSourceDidSelectItemNotification,
-                object: nil)
-        
-        NSNotificationCenter.defaultCenter().postNotification(notification)
-        
-        XCTAssertNotNil(
-        objc_getAssociatedObject(menuViewController, postedNotification),
-        "Listens to notification only when it's view is visible")
-    }
-    
-    func testRemovesItselfAsListenerForNotificationInViewDidDisappear() {
-        swizzleNotificationHandler()
-        menuViewController?.viewDidAppear(false)
-        menuViewController?.viewDidDisappear(false)
-        
-        let notification =
-            NSNotification(
-                name: MenuTableDataSourceDidSelectItemNotification,
-                object: nil)
-        
-        NSNotificationCenter.defaultCenter().postNotification(notification)
-        
-        XCTAssertNil(
-        objc_getAssociatedObject(menuViewController, postedNotification),
-        "Stops listening for notfication when view is not visible anymore")
-    }
-    
-    // Mark: - Method swizzling
-    
-    func swizzleNotificationHandler() {
-        var realMethod: Method = 
-            class_getInstanceMethod(
-                object_getClass(menuViewController),
-            Selector.convertFromStringLiteral(
-                "didSelectMenuItemNotification:"))
-        
-        var testMethod: Method = 
-            class_getInstanceMethod(
-                object_getClass(menuViewController),
-            Selector.convertFromStringLiteral(
-                "testImpl_didSelectMenuItemNotification:"))
-        
-        method_exchangeImplementations(realMethod, testMethod)
-    }
+	var menuViewController: MenuViewController?
+	var dataSource: MenuTableDataSource?
+	var tableView: UITableView?
+	
+	override func setUp() {
+	    super.setUp()
+	    dataSource = MenuTableFakeDataSource()
+	    tableView = UITableView()
+	
+	    menuViewController = MenuViewController()
+	    menuViewController?.dataSource = dataSource
+	    menuViewController?.tableView = tableView
+	}
+	
+	override func tearDown() {
+	    super.tearDown()        
+	    objc_removeAssociatedObjects(menuViewController)
+	}
+	
+	// ...
+	
+	func testRegistrationForNotificationHappensInViewDidAppear() {
+	    swizzleNotificationHandler()
+	    menuViewController?.viewDidAppear(false)
+	
+	    let notification =
+	        NSNotification(
+	            name: MenuTableDataSourceDidSelectItemNotification,
+	            object: nil)
+	
+	    NSNotificationCenter.defaultCenter().postNotification(notification)
+	
+	    XCTAssertNotNil(
+	    objc_getAssociatedObject(menuViewController, postedNotification),
+	    "Listens to notification only when it's view is visible")
+	}
+	
+	func testRemovesItselfAsListenerForNotificationInViewDidDisappear() {
+	    swizzleNotificationHandler()
+	    menuViewController?.viewDidAppear(false)
+	    menuViewController?.viewDidDisappear(false)
+	
+	    let notification =
+	        NSNotification(
+	            name: MenuTableDataSourceDidSelectItemNotification,
+	            object: nil)
+	
+	    NSNotificationCenter.defaultCenter().postNotification(notification)
+	
+	    XCTAssertNil(
+	    objc_getAssociatedObject(menuViewController, postedNotification),
+	    "Stops listening for notfication when view is not visible anymore")
+	}
+	
+	// Mark: - Method swizzling
+	
+	func swizzleNotificationHandler() {
+	    var realMethod: Method = 
+	        class_getInstanceMethod(
+	            object_getClass(menuViewController),
+	        Selector.convertFromStringLiteral(
+	            "didSelectMenuItemNotification:"))
+	
+	    var testMethod: Method = 
+	        class_getInstanceMethod(
+	            object_getClass(menuViewController),
+	        Selector.convertFromStringLiteral(
+	            "testImpl_didSelectMenuItemNotification:"))
+	
+	    method_exchangeImplementations(realMethod, testMethod)
+	}
 }
 
 extension MenuViewController {
-    func testImpl_didSelectMenuItemNotification(
-        notification: NSNotification) 
-    {
-        objc_setAssociatedObject(self,
-            postedNotification,
-            notification,
-            UInt(OBJC_ASSOCIATION_RETAIN))
-    }
+	func testImpl_didSelectMenuItemNotification(
+	    notification: NSNotification) 
+	{
+	    objc_setAssociatedObject(self,
+	        postedNotification,
+	        notification,
+	        UInt(OBJC_ASSOCIATION_RETAIN))
+	}
 }
-~~~
+\~\~\~
 
-굉장히 많은 코드가 있는데, 설명을 하자면. `MenuViewController` `MenuTableDataSourceDidSelectItemNotification` 의 호출을 받기 위해 자기 자신을 등록했다. 우리는 노티피케이션이 도착했을 때 우리가 원하는 메서드를 어떻게 호출할 것인지 알아야 한다. 이것은 한번만 받을 수 있어서, 노티피케이션이 메서드를 통과할 때 실체를 알수 있는 검증이 필요하다. 간단하게 비 개인화 속성으로 `MenuViewController` 안에 노티피케이션을 만들 것이다. 그러나 개인적으로 이 접근 방법을 좋아하진 않는다. `MenuViewController` 는 단지 테스트를 위해서 강제로 노출되지 않아야 한다. 여기에 더 좋은 방법이 있다. 우리는 어떻게 [swizzle](http://nshipster.com/method-swizzling/) 노티피케이션 핸들러를 런타임에서 각자 다르게 요구되는 구현을 테스트의 목적에 맞게 사용할 수 있을까? 다음 코드를 보자.
+굉장히 많은 코드가 있는데, 설명을 하자면. `MenuViewController` `MenuTableDataSourceDidSelectItemNotification` 의 호출을 받기 위해 자기 자신을 등록했다. 우리는 노티피케이션이 도착했을 때 우리가 원하는 메서드를 어떻게 호출할 것인지 알아야 한다. 이것은 한번만 받을 수 있어서, 노티피케이션이 메서드를 통과할 때 실체를 알수 있는 검증이 필요하다. 간단하게 비 개인화 속성으로 `MenuViewController` 안에 노티피케이션을 만들 것이다. 그러나 개인적으로 이 접근 방법을 좋아하진 않는다. `MenuViewController` 는 단지 테스트를 위해서 강제로 노출되지 않아야 한다. 여기에 더 좋은 방법이 있다. 우리는 어떻게 [swizzle][30] 노티피케이션 핸들러를 런타임에서 각자 다르게 요구되는 구현을 테스트의 목적에 맞게 사용할 수 있을까? 다음 코드를 보자.
 
-~~~swift
+\~\~\~swift
 func swizzleNotificationHandler() {
-    var realMethod: Method = 
-        class_getInstanceMethod(
-            object_getClass(menuViewController),
-        Selector.convertFromStringLiteral(
-            "didSelectMenuItemNotification:"))
-    
-    var testMethod: Method = 
-        class_getInstanceMethod(
-            object_getClass(menuViewController),
-        Selector.convertFromStringLiteral(
-            "testImpl_didSelectMenuItemNotification:"))
-    
-    method_exchangeImplementations(realMethod, testMethod)
+	var realMethod: Method = 
+	    class_getInstanceMethod(
+	        object_getClass(menuViewController),
+	    Selector.convertFromStringLiteral(
+	        "didSelectMenuItemNotification:"))
+	
+	var testMethod: Method = 
+	    class_getInstanceMethod(
+	        object_getClass(menuViewController),
+	    Selector.convertFromStringLiteral(
+	        "testImpl_didSelectMenuItemNotification:"))
+	
+	method_exchangeImplementations(realMethod, testMethod)
 }
-~~~
+\~\~\~
 
-그리고 여기에 `MenuViewController` 클래스를 테스트 구현에 요구되는 대로 [extension](http://goo.gl/lL1Cwy) 하였다.
+그리고 여기에 `MenuViewController` 클래스를 테스트 구현에 요구되는 대로 [extension][31] 하였다.
 
-~~~swift
+\~\~\~swift
 extension MenuViewController {
-    func testImpl_didSelectMenuItemNotification(
-        notification: NSNotification) 
-    {
-        objc_setAssociatedObject(self,
-                                 postedNotification,
-                                 notification,
-                                 UInt(OBJC_ASSOCIATION_RETAIN))
-    }
+	func testImpl_didSelectMenuItemNotification(
+	    notification: NSNotification) 
+	{
+	    objc_setAssociatedObject(self,
+	                             postedNotification,
+	                             notification,
+	                             UInt(OBJC_ASSOCIATION_RETAIN))
+	}
 }
-~~~
+\~\~\~
 
 우리는 여기에 테스트안에서 측정할 수 있는 `postedNotification` 을 지속적으로 받기 위한 노티피케이션 등록을 모두했다. `testRegistrationForMenuItemTappedNotificationHappensInViewDidAppear` 안에서 swizzle 노티피케이션 핸들러를 등록한 후에 `viewDidAppear` 를 호출하고, nil 이 아닌 `postedNotificiation` 을 노티피케이션과 검증을 위해 보냈다. 반면 `testRemovesItselfAsListenerForMenuItemTappedNotificationInViewDidDisappear` 에서는 먼저 `viewDidAppear` 를 호출하고 `MenuViewController` 에 노티피케이션을 등록했다. 이 노티피케이션은 `viewDidDisappear` 안에서 자신을 옵져버를 제거한다. 이는 노티피케이션이 `MenuViewController` 에서 `viewDidDisappear` 호출된 후에도 노티피케이션을 받을 수 있기 때문이다.
 
 테스트들을 통과하기 위해선 우리는 모두 노티피케이션의 등록과 해제 적절한 곳에서 해야한다.
 
-~~~
+\~\~\~
 override func viewDidAppear(animated: Bool) {
-    super.viewDidAppear(animated)
-    NSNotificationCenter.defaultCenter().addObserver(self,
-        selector: "didSelectMenuItemNotification:",
-        name: MenuTableDataSourceDidSelectItemNotification,
-        object: nil)
+	super.viewDidAppear(animated)
+	NSNotificationCenter.defaultCenter().addObserver(self,
+	    selector: "didSelectMenuItemNotification:",
+	    name: MenuTableDataSourceDidSelectItemNotification,
+	    object: nil)
 }
 
 override func viewDidDisappear(animated: Bool) {
-    super.viewDidDisappear(animated)
-    NSNotificationCenter.defaultCenter().removeObserver(self,
-        name: MenuTableDataSourceDidSelectItemNotification,
-        object: nil)
+	super.viewDidDisappear(animated)
+	NSNotificationCenter.defaultCenter().removeObserver(self,
+	    name: MenuTableDataSourceDidSelectItemNotification,
+	    object: nil)
 }
 
 func didSelectMenuItemNotification(notification: NSNotification?) {
-    // Handle notification
+	// Handle notification
 }
-~~~
+\~\~\~
 
 <a name="sliding_views_in"></a>
 Sliding Views In
@@ -1323,271 +1323,271 @@ Sliding Views In
 
 menu item이 눌렸을 때 view가 보여져야 한다. 하지만 어떤것? menu item에 직접 물어보는 건 어떨까? 단순함을 유지하기 위해 view controller의 이름을 `MenuItem`에 `tapHandlerName` property 로 저장하자.
 
-~~~swift
+\~\~\~swift
 class MenuItemTests: XCTestCase {
-    // ...
-
-    func testThatMenuItemCanBeAssignedATapHandlerName() {
-        menuItem!.tapHandlerName = "someViewController"
-        XCTAssertEqual(menuItem!.tapHandlerName!, 
-            "someViewController",
-            "Tap handler name should be what we assigned")
-    }
+	// ...
+	
+	func testThatMenuItemCanBeAssignedATapHandlerName() {
+	    menuItem!.tapHandlerName = "someViewController"
+	    XCTAssertEqual(menuItem!.tapHandlerName!, 
+	        "someViewController",
+	        "Tap handler name should be what we assigned")
+	}
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class MenuItem {
-    // ...
-
-    var tapHandlerName: String?
+	// ...
+	
+	var tapHandlerName: String?
 }
-~~~
+\~\~\~
 
 이것은 menu item이 tap handler를 갖지 않을 좋을 방법이다. Therefore, `tapHandlerName` property를 optional로 만들어야 한다.  이제 `MenuItem`에 property를 추가하고 `menuItems.plist`, `FakeMenuItemsReader`, `MenuItemsPlistReaderTests`, `MenuItemBuilderTests`, 그리고 `MenuItemBuilder`를 맞추자. 조정된 코드는 아래에 나열되어 있다.
 
-~~~xml
+\~\~\~xml
 <!--menuItems.plist-->
 
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+\<?xml version="1.0" encoding="UTF-8"?\>
+\<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"\>
 <plist version="1.0">
 <array>
-    <dict>
-        //...
-        <key>tapHandlerName</key>
-        <string>ContributionsViewController</string>
-    </dict>
-    <dict>
-        //...
-        <key>tapHandlerName</key>
-        <string>RepositoriesViewController</string>
-    </dict>
-    <dict>
-        //...
-        <key>tapHandlerName</key>
-        <string>PublicActivityViewController</string>
-    </dict>
+	<dict>
+	    //...
+	    <key>tapHandlerName</key>
+	    <string>ContributionsViewController</string>
+	</dict>
+	<dict>
+	    //...
+	    <key>tapHandlerName</key>
+	    <string>RepositoriesViewController</string>
+	</dict>
+	<dict>
+	    //...
+	    <key>tapHandlerName</key>
+	    <string>PublicActivityViewController</string>
+	</dict>
 </array>
 </plist>
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class FakeMenuItemsReader : MenuItemsReader {
-    // ...
-    
-    func readMenuItems() -> ([[String : String]]?, NSError?) {
-        let menuItem1 = 
-            missingTitle ? menuItem1WithMissingTitle() 
-                         : menuItem1WithNoMissingTitle()
-        
-        let menuItem2 = ["title": "Menu Item 2",
-                         "subTitle": "Menu Item 2 subtitle",
-                         "iconName": "iconName2",
-                         "tapHandlerName": "someViewController1"]
-        
-        return ([menuItem1, menuItem2], nil)
-    }
-    
-    func menuItem1WithMissingTitle() -> [String : String] {
-        return ["subTitle": "Menu Item 1 subtitle",
-                "iconName": "iconName1",
-                "tapHandlerName": "someViewController2"]
-    }
-
-    // ...
+	// ...
+	
+	func readMenuItems() -> ([[String : String]]?, NSError?) {
+	    let menuItem1 = 
+	        missingTitle ? menuItem1WithMissingTitle() 
+	                     : menuItem1WithNoMissingTitle()
+	
+	    let menuItem2 = ["title": "Menu Item 2",
+	                     "subTitle": "Menu Item 2 subtitle",
+	                     "iconName": "iconName2",
+	                     "tapHandlerName": "someViewController1"]
+	
+	    return ([menuItem1, menuItem2], nil)
+	}
+	
+	func menuItem1WithMissingTitle() -> [String : String] {
+	    return ["subTitle": "Menu Item 1 subtitle",
+	            "iconName": "iconName1",
+	            "tapHandlerName": "someViewController2"]
+	}
+	
+	// ...
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class MenuItemsPlistReaderTests: XCTestCase {
-    // ...
-
-    func testPlistIsDeserializedCorrectly() {        
-        // ...
-        XCTAssertEqual(firstRow!["tapHandlerName"]!, 
-            "ContributionsViewController",
-            "1st row's tap handler should be what's in plist")
-        
-        // ...
-        XCTAssertEqual(secondRow!["tapHandlerName"]!, 
-            "RepositoriesViewController",
-            "2nd row's tap handler should be what's in plist")
-        
-        // ...
-        XCTAssertEqual(thirdRow!["tapHandlerName"]!, 
-            "PublicActivityViewController",
-            "3rd row's tap handler should be what's in plist")
-    }
+	// ...
+	
+	func testPlistIsDeserializedCorrectly() {        
+	    // ...
+	    XCTAssertEqual(firstRow!["tapHandlerName"]!, 
+	        "ContributionsViewController",
+	        "1st row's tap handler should be what's in plist")
+	
+	    // ...
+	    XCTAssertEqual(secondRow!["tapHandlerName"]!, 
+	        "RepositoriesViewController",
+	        "2nd row's tap handler should be what's in plist")
+	
+	    // ...
+	    XCTAssertEqual(thirdRow!["tapHandlerName"]!, 
+	        "PublicActivityViewController",
+	        "3rd row's tap handler should be what's in plist")
+	}
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class MenuItemBuilderTests: XCTestCase {
-    // ...
-
-    func testMenuItemPropertiesContainValuesPresentInDictionary() {
-        // ...
-        
-        let rawDictionary1 = metadata![0]
-        let menuItem1 = menuItems![0]
-
-        // ...
-        
-        XCTAssertEqual(menuItem1.tapHandlerName!, 
-            rawDictionary1["tapHandlerName"]!,
-            "1st menu item's tap handler should be what's in the 1st dict")
-        
-        let rawDictionary2 = metadata![1]
-        let menuItem2 = menuItems![1]
-        
-        // ...
-
-        XCTAssertEqual(menuItem2.tapHandlerName!, 
-            rawDictionary2["tapHandlerName"]!,
-            "2nd menu item's tap handler should be what's in the 2nd dict")
-    }
+	// ...
+	
+	func testMenuItemPropertiesContainValuesPresentInDictionary() {
+	    // ...
+	
+	    let rawDictionary1 = metadata![0]
+	    let menuItem1 = menuItems![0]
+	
+	    // ...
+	
+	    XCTAssertEqual(menuItem1.tapHandlerName!, 
+	        rawDictionary1["tapHandlerName"]!,
+	        "1st menu item's tap handler should be what's in the 1st dict")
+	
+	    let rawDictionary2 = metadata![1]
+	    let menuItem2 = menuItems![1]
+	
+	    // ...
+	
+	    XCTAssertEqual(menuItem2.tapHandlerName!, 
+	        rawDictionary2["tapHandlerName"]!,
+	        "2nd menu item's tap handler should be what's in the 2nd dict")
+	}
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class MenuItemBuilder {
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
-        -> ([MenuItem]?, NSError?) 
-    {
-        // ...
-        
-        for dictionary in metadata {
-            if let title = dictionary["title"] {
-                let menuItem = MenuItem(title: title)
-                menuItem.subTitle = dictionary["subTitle"]
-                menuItem.iconName = dictionary["iconName"]
-                menuItem.tapHandlerName = dictionary["tapHandlerName"]
-                menuItems.append(menuItem)
-            }
-            else {
-                error = missingTitleError()
-                menuItems.removeAll(keepCapacity: false)
-                break
-            }
-        }
-        
-        return (menuItems, error)
-    }
-
-    // ...
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
+	    -> ([MenuItem]?, NSError?) 
+	{
+	    // ...
+	
+	    for dictionary in metadata {
+	        if let title = dictionary["title"] {
+	            let menuItem = MenuItem(title: title)
+	            menuItem.subTitle = dictionary["subTitle"]
+	            menuItem.iconName = dictionary["iconName"]
+	            menuItem.tapHandlerName = dictionary["tapHandlerName"]
+	            menuItems.append(menuItem)
+	        }
+	        else {
+	            error = missingTitleError()
+	            menuItems.removeAll(keepCapacity: false)
+	            break
+	        }
+	    }
+	
+	    return (menuItems, error)
+	}
+	
+	// ...
 }
-~~~
+\~\~\~
 
 다음으로 menu item이 눌렸을 때 `MenuViewController`가 맞는 view를 보여주도록 해야한다. 다음 test가 그렇게 할 것이다.
 
-~~~swift
+\~\~\~swift
 class MenuViewControllerTests: XCTestCase {
-    // ...
-    var navController: UINavigationController?
-
-    override func setUp() {
-        // ...                
-        navController = 
-            UINavigationController(rootViewController: menuViewController)
-    }
-
-    // ...
-
-    func testCorrectViewIsDisplayedWhenContributionsMenuItemIsTapped() {
-        let menuItem = MenuItem(title: "Contributions")
-        menuItem.tapHandlerName = "ContributionsViewController"
-
-        let notification = 
-            NSNotification(
-                name: MenuTableDataSourceDidSelectItemNotification,
-                object: menuItem)
-        
-        menuViewController?.didSelectMenuItemNotification(notification)
-        let topViewController = navController?.topViewController
-        
-        XCTAssertTrue(topViewController is ContributionsViewController,
-            "Contributions view is displayed for Contributions menu item")
-    }
-    
-    func testCorrectViewIsDisplayedWhenRepositoriesMenuItemIsTapped() {
-        let menuItem = MenuItem(title: "Repositories")
-        menuItem.tapHandlerName = "RepositoriesViewController"
-
-        let notification = 
-            NSNotification(
-                name: MenuTableDataSourceDidSelectItemNotification,
-                object: menuItem)
-        
-        menuViewController?.didSelectMenuItemNotification(notification)
-        let topViewController = navController?.topViewController
-        
-        XCTAssertTrue(topViewController is RepositoriesViewController,
-            "Repositories view is displayed for Contributions menu item")
-    }
-    
-    func testCorrectViewIsDisplayedWhenPublicActivityMenuItemIsTapped() {
-        let menuItem = MenuItem(title: "PublicActivity")
-        menuItem.tapHandlerName = "PublicActivityViewController"
-
-        let notification = 
-            NSNotification(
-                name: MenuTableDataSourceDidSelectItemNotification,
-                object: menuItem)
-        
-        menuViewController?.didSelectMenuItemNotification(notification)
-        let topViewController = navController?.topViewController
-        
-        XCTAssertTrue(topViewController is PublicActivityViewController,
-            "Public activity view is displayed for Contributions menu item")
-    }
-
-    // ...
+	// ...
+	var navController: UINavigationController?
+	
+	override func setUp() {
+	    // ...                
+	    navController = 
+	        UINavigationController(rootViewController: menuViewController)
+	}
+	
+	// ...
+	
+	func testCorrectViewIsDisplayedWhenContributionsMenuItemIsTapped() {
+	    let menuItem = MenuItem(title: "Contributions")
+	    menuItem.tapHandlerName = "ContributionsViewController"
+	
+	    let notification = 
+	        NSNotification(
+	            name: MenuTableDataSourceDidSelectItemNotification,
+	            object: menuItem)
+	
+	    menuViewController?.didSelectMenuItemNotification(notification)
+	    let topViewController = navController?.topViewController
+	
+	    XCTAssertTrue(topViewController is ContributionsViewController,
+	        "Contributions view is displayed for Contributions menu item")
+	}
+	
+	func testCorrectViewIsDisplayedWhenRepositoriesMenuItemIsTapped() {
+	    let menuItem = MenuItem(title: "Repositories")
+	    menuItem.tapHandlerName = "RepositoriesViewController"
+	
+	    let notification = 
+	        NSNotification(
+	            name: MenuTableDataSourceDidSelectItemNotification,
+	            object: menuItem)
+	
+	    menuViewController?.didSelectMenuItemNotification(notification)
+	    let topViewController = navController?.topViewController
+	
+	    XCTAssertTrue(topViewController is RepositoriesViewController,
+	        "Repositories view is displayed for Contributions menu item")
+	}
+	
+	func testCorrectViewIsDisplayedWhenPublicActivityMenuItemIsTapped() {
+	    let menuItem = MenuItem(title: "PublicActivity")
+	    menuItem.tapHandlerName = "PublicActivityViewController"
+	
+	    let notification = 
+	        NSNotification(
+	            name: MenuTableDataSourceDidSelectItemNotification,
+	            object: menuItem)
+	
+	    menuViewController?.didSelectMenuItemNotification(notification)
+	    let topViewController = navController?.topViewController
+	
+	    XCTAssertTrue(topViewController is PublicActivityViewController,
+	        "Public activity view is displayed for Contributions menu item")
+	}
+	
+	// ...
 }
-~~~
+\~\~\~
 
 `MenuViewController`를 app navigation stack의 오른쪽 view controller로 push하도록 만들자
 
-~~~swift
+\~\~\~swift
 class MenuViewController: UIViewController {
-    // ...
-    func didSelectMenuItemNotification(notification: NSNotification?) {
-        var menuItem: MenuItem? = notification!.object as? MenuItem
-        
-        if menuItem != nil {
-            var tapHandler: UIViewController?
-            
-            switch menuItem!.tapHandlerName! {
-                case "ContributionsViewController":
-                tapHandler = 
-                    ContributionsViewController(
-                        nibName: "ContributionsViewController",
-                        bundle: nil)
-
-                case "RepositoriesViewController":
-                tapHandler = 
-                    RepositoriesViewController(
-                        nibName: "RepositoriesViewController",
-                        bundle: nil)
-
-                case "PublicActivityViewController":
-                tapHandler = 
-                    PublicActivityViewController(
-                        nibName: "PublicActivityViewController",
-                        bundle: nil)
-
-                default:
-                tapHandler = nil
-            }
-            
-            if tapHandler != nil {
-                self.navigationController.pushViewController(tapHandler,
-                                                             animated: true)
-            }
-        }
-    }
+	// ...
+	func didSelectMenuItemNotification(notification: NSNotification?) {
+	    var menuItem: MenuItem? = notification!.object as? MenuItem
+	
+	    if menuItem != nil {
+	        var tapHandler: UIViewController?
+	
+	        switch menuItem!.tapHandlerName! {
+	            case "ContributionsViewController":
+	            tapHandler = 
+	                ContributionsViewController(
+	                    nibName: "ContributionsViewController",
+	                    bundle: nil)
+	
+	            case "RepositoriesViewController":
+	            tapHandler = 
+	                RepositoriesViewController(
+	                    nibName: "RepositoriesViewController",
+	                    bundle: nil)
+	
+	            case "PublicActivityViewController":
+	            tapHandler = 
+	                PublicActivityViewController(
+	                    nibName: "PublicActivityViewController",
+	                    bundle: nil)
+	
+	            default:
+	            tapHandler = nil
+	        }
+	
+	        if tapHandler != nil {
+	            self.navigationController.pushViewController(tapHandler,
+	                                                         animated: true)
+	        }
+	    }
+	}
 }
-~~~
+\~\~\~
 
 또한 tap handler class들을 만들어야 한다. 다음의 view controller를 만들고 각각에 *AppMenu* and *AppMenuTests* target을 추가한다. 각각을 위한 *XIB* 파일을 만드는 것 또한 잊지 말자.
 
@@ -1599,15 +1599,15 @@ switch case 문을 사용하는 대신에 runtime에 view controller를 만들�
 
 * 나는 Swift에서 가장 좋은 방법이 무엇인지 확신할 수 없다. Objective-C에서는 다음의 code에서와 같이 쉽게 할 수 있다.
 
-  ~~~Obj-C
-    UIViewController *tapHandler = nil;
-    Class tapHandlerClass =
-         NSClassFromString(menuItem.tapHandlerName)
-
-    if (tapHandlerClass) {
-        tapHandler = [[tapHandlerClass alloc] init];
-    }
-  ~~~
+  \~\~\~Obj-C
+	UIViewController *tapHandler = nil;
+	Class tapHandlerClass =
+	     NSClassFromString(menuItem.tapHandlerName)
+	
+	if (tapHandlerClass) {
+	    tapHandler = [[tapHandlerClass alloc] init];
+	}
+  \~\~\~
 
 * Objective-C와는 다르게, Swift는 XIB의 이름과 view controller의 이름이 같더라도 view controller의 instance를 만들 때, XIB를 지정해야 한다. 게다가, 간단히 `alloc`, `init`으로 부르는 기능은 Swift에서는 필요하지 않다.
 
@@ -1618,293 +1618,293 @@ switch case 문을 사용하는 대신에 runtime에 view controller를 만들�
 
 *AppMenuTests* target안에 file name이 `AppMenuManagerTests.swift`인 새로운 test 파일을 만든다. 다음의 test를 추가한다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class AppMenuManagerTests: XCTestCase {
-    var menuManager: AppMenuManager?
-    var fakeMenuItemsReader: FakeMenuItemsReader?
-    var fakeMenuItemBuilder: FakeMenuItemBuilder?
-    var menuViewController: MenuViewController?
-    
-    override func setUp() {
-        super.setUp()
-        menuManager = AppMenuManager()
-        fakeMenuItemsReader = FakeMenuItemsReader()
-        fakeMenuItemBuilder = FakeMenuItemBuilder()
-        menuManager?.menuItemsReader = fakeMenuItemsReader
-        menuManager?.menuItemBuilder = fakeMenuItemBuilder
-    }
-
-    func testReturnsNilIfMetadataCouldNotBeRead() {
-        fakeMenuItemsReader?.errorToReturn = fakeError()
-        menuViewController = menuManager?.menuViewController()
-        
-        XCTAssertNil(menuViewController,
-        "Doesn't create menu VC if metadata couldn't be read")
-    }
-    
-    func testMetadataIsPassedToMenuItemBuilder() {
-        menuViewController = menuManager?.menuViewController()
-
-        var (metadataReturnedByReader, _) = 
-            fakeMenuItemsReader!.readMenuItems()
-
-        let metadataReceivedByBuilder = 
-            fakeMenuItemBuilder!.metadata
-        
-        XCTAssertTrue(metadataReceivedByBuilder?.count == 
-            metadataReturnedByReader?.count,
-            "Number of dictionaries in metadata should match")
-    }
-    
-    func testReturnsNilIfMenuItemsCouldNotBeBuilt() {
-        fakeMenuItemBuilder?.errorToReturn = fakeError()
-        menuViewController = menuManager?.menuViewController()
-        
-        XCTAssertNil(menuViewController,
-        "Doesn't create menu VC if menu items couldn't be built")
-    }
-    
-    func testCreatesMenuViewControllerIfMenuItemsAvailable() {
-        fakeMenuItemBuilder?.menuItemsToReturn = fakeMenuItems()
-        menuViewController = menuManager?.menuViewController()
-        
-        XCTAssertNotNil(menuViewController,
-        "Creates menu view controller if menu items are available")
-        
-        XCTAssertNotNil(menuViewController?.dataSource,
-            "Menu view controller is given a data source")
-    }
-    
-    func fakeError() -> NSError {
-        let errorMessage = "Fake error description"
-        let userInfo = [NSLocalizedDescriptionKey: errorMessage]
-        
-        return NSError(domain: "Fake Error domain",
-                       code: 0,
-                       userInfo: userInfo)
-    }
-    
-    func fakeMenuItems() -> [MenuItem] {
-        let menuItem = MenuItem(title: "Fake menu item")
-        return [menuItem]
-    }
+	var menuManager: AppMenuManager?
+	var fakeMenuItemsReader: FakeMenuItemsReader?
+	var fakeMenuItemBuilder: FakeMenuItemBuilder?
+	var menuViewController: MenuViewController?
+	
+	override func setUp() {
+	    super.setUp()
+	    menuManager = AppMenuManager()
+	    fakeMenuItemsReader = FakeMenuItemsReader()
+	    fakeMenuItemBuilder = FakeMenuItemBuilder()
+	    menuManager?.menuItemsReader = fakeMenuItemsReader
+	    menuManager?.menuItemBuilder = fakeMenuItemBuilder
+	}
+	
+	func testReturnsNilIfMetadataCouldNotBeRead() {
+	    fakeMenuItemsReader?.errorToReturn = fakeError()
+	    menuViewController = menuManager?.menuViewController()
+	
+	    XCTAssertNil(menuViewController,
+	    "Doesn't create menu VC if metadata couldn't be read")
+	}
+	
+	func testMetadataIsPassedToMenuItemBuilder() {
+	    menuViewController = menuManager?.menuViewController()
+	
+	    var (metadataReturnedByReader, _) = 
+	        fakeMenuItemsReader!.readMenuItems()
+	
+	    let metadataReceivedByBuilder = 
+	        fakeMenuItemBuilder!.metadata
+	
+	    XCTAssertTrue(metadataReceivedByBuilder?.count == 
+	        metadataReturnedByReader?.count,
+	        "Number of dictionaries in metadata should match")
+	}
+	
+	func testReturnsNilIfMenuItemsCouldNotBeBuilt() {
+	    fakeMenuItemBuilder?.errorToReturn = fakeError()
+	    menuViewController = menuManager?.menuViewController()
+	
+	    XCTAssertNil(menuViewController,
+	    "Doesn't create menu VC if menu items couldn't be built")
+	}
+	
+	func testCreatesMenuViewControllerIfMenuItemsAvailable() {
+	    fakeMenuItemBuilder?.menuItemsToReturn = fakeMenuItems()
+	    menuViewController = menuManager?.menuViewController()
+	
+	    XCTAssertNotNil(menuViewController,
+	    "Creates menu view controller if menu items are available")
+	
+	    XCTAssertNotNil(menuViewController?.dataSource,
+	        "Menu view controller is given a data source")
+	}
+	
+	func fakeError() -> NSError {
+	    let errorMessage = "Fake error description"
+	    let userInfo = [NSLocalizedDescriptionKey: errorMessage]
+	
+	    return NSError(domain: "Fake Error domain",
+	                   code: 0,
+	                   userInfo: userInfo)
+	}
+	
+	func fakeMenuItems() -> [MenuItem] {
+	    let menuItem = MenuItem(title: "Fake menu item")
+	    return [menuItem]
+	}
 }
-~~~
+\~\~\~
 
-metadata로부터 성공적으로 `MenuItem` object가 만들어진 경우 `AppMenuManager`는 `MenuViewController`를 만들 책임이 있다. 그렇지 못할 경우 nil을 반환한다. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*](#building_menu_items), but it doesn't provide a way for us to set the error. Let's take care of that.
+metadata로부터 성공적으로 `MenuItem` object가 만들어진 경우 `AppMenuManager`는 `MenuViewController`를 만들 책임이 있다. 그렇지 못할 경우 nil을 반환한다. Since `AppMenuManager` mostly coordinates the interaction between various objects rather than doing the work itself, we also need to make sure that it passes the metadata (if read successfully) to the builder. You might have noticed that we are using fake menu items reader and builder objects here so that we can control what gets returned to app menu manager in tests. We built a fake menu items reader in [*Building Menu Items*][32], but it doesn't provide a way for us to set the error. Let's take care of that.
 
-~~~swift
+\~\~\~swift
 class FakeMenuItemsReader : MenuItemsReader {
-    var missingTitle: Bool = false
-    var errorToReturn: NSError? = nil
-    
-    func readMenuItems() -> ([[String : String]]?, NSError?) {
-        if errorToReturn != nil {
-            return (nil, errorToReturn)
-        }
-        else {
-            let menuItem1 = 
-                missingTitle ? menuItem1WithMissingTitle() 
-                             : menuItem1WithNoMissingTitle()
-            
-            let menuItem2 = ["title": "Menu Item 2",
-                "subTitle": "Menu Item 2 subtitle",
-                "iconName": "iconName2",
-                "tapHandlerName": "someViewController1"]
-            
-            return ([menuItem1, menuItem2], nil)
-        }
-    }
-
-    // ...
-~~~
+	var missingTitle: Bool = false
+	var errorToReturn: NSError? = nil
+	
+	func readMenuItems() -> ([[String : String]]?, NSError?) {
+	    if errorToReturn != nil {
+	        return (nil, errorToReturn)
+	    }
+	    else {
+	        let menuItem1 = 
+	            missingTitle ? menuItem1WithMissingTitle() 
+	                         : menuItem1WithNoMissingTitle()
+	
+	        let menuItem2 = ["title": "Menu Item 2",
+	            "subTitle": "Menu Item 2 subtitle",
+	            "iconName": "iconName2",
+	            "tapHandlerName": "someViewController1"]
+	
+	        return ([menuItem1, menuItem2], nil)
+	    }
+	}
+	
+	// ...
+\~\~\~
 
 다음으로 `FakeMenuItemBuilder`class를 만들어야 한다. Now that there is going to be more than one class playing the role of a menu item builder, we should create a protocol to make it clear what it means for a class to become a menu item builder. For now, playing that role means implementing `buildMenuItemsFromMetadata` method correctly. 아래는 새로운 protocol이다.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 protocol MenuItemBuilder {
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) -> ([MenuItem]?, NSError?)
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) -> ([MenuItem]?, NSError?)
 }
-~~~
+\~\~\~
 
 잠깐만. Didn't we already name our real builder class `MenuItemBuilder`? 그렀다, 했다. `MenuItemBuilder` 이름은 protocol에 더 적합하다. 원래의 builder class의 이름을 `MenuItemDefaultBuilder`로 바꾸자.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 let MenuItemDefaultBuilderErrorDomain = "MenuItemDefaultBuilderErrorDomain"
 
 enum MenuItemDefaultBuilderErrorCode : Int {
-    case MissingTitle
+	case MissingTitle
 }
 
 class MenuItemDefaultBuilder : MenuItemBuilder {
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
-        -> ([MenuItem]?, NSError?) 
-    {
-        var menuItems = [MenuItem]()
-        var error: NSError?
-        
-        for dictionary in metadata {
-            if let title = dictionary["title"] {
-                let menuItem = MenuItem(title: title)
-                menuItem.subTitle = dictionary["subTitle"]
-                menuItem.iconName = dictionary["iconName"]
-                menuItem.tapHandlerName = dictionary["tapHandlerName"]
-                menuItems.append(menuItem)
-            }
-            else {
-                error = missingTitleError()
-                menuItems.removeAll(keepCapacity: false)
-                break
-            }
-        }
-        
-        return (menuItems, error)
-    }
-    
-    private func missingTitleError() -> NSError {
-        let userInfo = 
-            [NSLocalizedDescriptionKey: "All menu items must have a title"]
-
-        return NSError(domain: MenuItemDefaultBuilderErrorDomain,
-            code: MenuItemDefaultBuilderErrorCode.MissingTitle.toRaw(),
-            userInfo: userInfo)
-    }
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
+	    -> ([MenuItem]?, NSError?) 
+	{
+	    var menuItems = [MenuItem]()
+	    var error: NSError?
+	
+	    for dictionary in metadata {
+	        if let title = dictionary["title"] {
+	            let menuItem = MenuItem(title: title)
+	            menuItem.subTitle = dictionary["subTitle"]
+	            menuItem.iconName = dictionary["iconName"]
+	            menuItem.tapHandlerName = dictionary["tapHandlerName"]
+	            menuItems.append(menuItem)
+	        }
+	        else {
+	            error = missingTitleError()
+	            menuItems.removeAll(keepCapacity: false)
+	            break
+	        }
+	    }
+	
+	    return (menuItems, error)
+	}
+	
+	private func missingTitleError() -> NSError {
+	    let userInfo = 
+	        [NSLocalizedDescriptionKey: "All menu items must have a title"]
+	
+	    return NSError(domain: MenuItemDefaultBuilderErrorDomain,
+	        code: MenuItemDefaultBuilderErrorCode.MissingTitle.toRaw(),
+	        userInfo: userInfo)
+	}
 }
-~~~
+\~\~\~
 
 또한 새로운 이름을 사용하도록 test를 조정해야 한다.
 
-~~~swift
+\~\~\~swift
 class MenuItemDefaultBuilderTests: XCTestCase {
-    var menuItemBuilder: MenuItemDefaultBuilder?
-    var fakeMenuItemsReader: FakeMenuItemsReader?
-    var menuItems: [MenuItem]?
-    var error: NSError?
-    
-    override func setUp() {
-        fakeMenuItemsReader = FakeMenuItemsReader()
-        fakeMenuItemsReader!.missingTitle = true
-
-        let (metadata, _) = 
-            fakeMenuItemsReader!.readMenuItems()
-        
-        menuItemBuilder = MenuItemDefaultBuilder()
-        (menuItems, error) = 
-            menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
-    }
-    
-    func testCorrectErrorDomainIsReturnedWhenTitleIsMissing() {
-        let errorDomain = error?.domain
-        XCTAssertEqual(errorDomain!, 
-            MenuItemDefaultBuilderErrorDomain,
-            "Correct error domain is returned")
-    }
-    
-    func testMissingTitleErrorCodeIsReturnedWhenTitleIsMissing() {
-        let errorCode = error?.code
-        XCTAssertEqual(errorCode!, 
-            MenuItemDefaultBuilderErrorCode.MissingTitle.toRaw(),
-            "Correct error code is returned")
-    }
-    
-    // ...
+	var menuItemBuilder: MenuItemDefaultBuilder?
+	var fakeMenuItemsReader: FakeMenuItemsReader?
+	var menuItems: [MenuItem]?
+	var error: NSError?
+	
+	override func setUp() {
+	    fakeMenuItemsReader = FakeMenuItemsReader()
+	    fakeMenuItemsReader!.missingTitle = true
+	
+	    let (metadata, _) = 
+	        fakeMenuItemsReader!.readMenuItems()
+	
+	    menuItemBuilder = MenuItemDefaultBuilder()
+	    (menuItems, error) = 
+	        menuItemBuilder!.buildMenuItemsFromMetadata(metadata!)
+	}
+	
+	func testCorrectErrorDomainIsReturnedWhenTitleIsMissing() {
+	    let errorDomain = error?.domain
+	    XCTAssertEqual(errorDomain!, 
+	        MenuItemDefaultBuilderErrorDomain,
+	        "Correct error domain is returned")
+	}
+	
+	func testMissingTitleErrorCodeIsReturnedWhenTitleIsMissing() {
+	    let errorCode = error?.code
+	    XCTAssertEqual(errorCode!, 
+	        MenuItemDefaultBuilderErrorCode.MissingTitle.toRaw(),
+	        "Correct error code is returned")
+	}
+	
+	// ...
 }
-~~~
+\~\~\~
 
 마지막으로, here is what the `FakeMenuItemReader` class looks like. 오직 test에서만 사용하기 때문에 *AppMenu* target에 추가할 필요는 없다.
 
-~~~swift
+\~\~\~swift
 import Foundation
 
 class FakeMenuItemBuilder : MenuItemBuilder {
-    var errorToReturn: NSError? = nil
-    var menuItemsToReturn: [MenuItem]? = nil
-    var metadata: [[String : String]]? = nil
-    
-    func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
-        -> ([MenuItem]?, NSError?) 
-    {
-        self.metadata = metadata
-        return (menuItemsToReturn, errorToReturn)
-    }
+	var errorToReturn: NSError? = nil
+	var menuItemsToReturn: [MenuItem]? = nil
+	var metadata: [[String : String]]? = nil
+	
+	func buildMenuItemsFromMetadata(metadata: [[String : String]]) 
+	    -> ([MenuItem]?, NSError?) 
+	{
+	    self.metadata = metadata
+	    return (menuItemsToReturn, errorToReturn)
+	}
 }
-~~~
+\~\~\~
 
 It makes the metadata passed to it available for inspection. It also allows us to set the error and menu items we want it to return which is very convenient. `AppMenuManager` class를 build할 준비가 되었다. Here is what it looks like.
 
-~~~swift
+\~\~\~swift
 import Foundation
 import UIKit
 
 class AppMenuManager {
-    var menuItemsReader: MenuItemsReader? = nil
-    var menuItemBuilder: MenuItemBuilder? = nil
-    
-    func menuViewController() -> MenuViewController? {
-        let (metadata, metadataError) = 
-            menuItemsReader!.readMenuItems()
-        
-        if metadataError != nil {
-            tellUserAboutError(metadataError!)
-        }
-        else if let menuItems = menuItemsFromMetadata(metadata!) {
-            return menuViewControllerFromMenuItems(menuItems)
-        }
-        
-        return nil
-    }
-    
-    private func tellUserAboutError(error: NSError) {
-        println("Error domain: \(error.domain)")
-        println("Error code: \(error.code)")
-        
-        let alert = UIAlertView(title: "Error",
-                                message: error.localizedDescription,
-                                delegate: nil,
-                                cancelButtonTitle: nil,
-                                otherButtonTitles: "OK")
-        alert.show()
-    }
-    
-    private func menuItemsFromMetadata(metadata: [[String : String]]) 
-        -> [MenuItem]? 
-    {
-        let (menuItems, builderError) = 
-            menuItemBuilder!.buildMenuItemsFromMetadata(metadata)
-        
-        if builderError != nil {
-            tellUserAboutError(builderError!)
-            return nil
-        }
-
-        return menuItems
-    }
-    
-    private func menuViewControllerFromMenuItems(menuItems: [MenuItem]) 
-        -> MenuViewController 
-    {
-        let dataSource = MenuTableDefaultDataSource()
-        dataSource.menuItems = menuItems
-        
-        let menuViewController = 
-            MenuViewController(nibName: "MenuViewController", bundle: nil)
-
-        menuViewController.dataSource = dataSource        
-        return menuViewController
-    }
+	var menuItemsReader: MenuItemsReader? = nil
+	var menuItemBuilder: MenuItemBuilder? = nil
+	
+	func menuViewController() -> MenuViewController? {
+	    let (metadata, metadataError) = 
+	        menuItemsReader!.readMenuItems()
+	
+	    if metadataError != nil {
+	        tellUserAboutError(metadataError!)
+	    }
+	    else if let menuItems = menuItemsFromMetadata(metadata!) {
+	        return menuViewControllerFromMenuItems(menuItems)
+	    }
+	
+	    return nil
+	}
+	
+	private func tellUserAboutError(error: NSError) {
+	    println("Error domain: \(error.domain)")
+	    println("Error code: \(error.code)")
+	
+	    let alert = UIAlertView(title: "Error",
+	                            message: error.localizedDescription,
+	                            delegate: nil,
+	                            cancelButtonTitle: nil,
+	                            otherButtonTitles: "OK")
+	    alert.show()
+	}
+	
+	private func menuItemsFromMetadata(metadata: [[String : String]]) 
+	    -> [MenuItem]? 
+	{
+	    let (menuItems, builderError) = 
+	        menuItemBuilder!.buildMenuItemsFromMetadata(metadata)
+	
+	    if builderError != nil {
+	        tellUserAboutError(builderError!)
+	        return nil
+	    }
+	
+	    return menuItems
+	}
+	
+	private func menuViewControllerFromMenuItems(menuItems: [MenuItem]) 
+	    -> MenuViewController 
+	{
+	    let dataSource = MenuTableDefaultDataSource()
+	    dataSource.menuItems = menuItems
+	
+	    let menuViewController = 
+	        MenuViewController(nibName: "MenuViewController", bundle: nil)
+	
+	    menuViewController.dataSource = dataSource        
+	    return menuViewController
+	}
 }
-~~~
+\~\~\~
 
-여기에서 *read-green-refactor* cycle을 따르지 않는 것을 사과한다. I매 단계 진행하는 절차를 보여주는 것보다 test를 보다 쉽게 작성하는 중요한 테크닉에 집중하길 원했다. 이러한 테크닉 중 하나는 test를 유지하면서 쉽게 그것들을 바꿀 수 있도록 실제 object와 동일한 역할을 하는 가짜(또는 테스트를 위한) object를 만든 것이다. 가짜 object에 대해서 [Martin Fowler](http://martinfowler.com/)가 쓴 [좋은 게시물](http://martinfowler.com/articles/mocksArentStubs.html)이 있다.
+여기에서 *read-green-refactor* cycle을 따르지 않는 것을 사과한다. I매 단계 진행하는 절차를 보여주는 것보다 test를 보다 쉽게 작성하는 중요한 테크닉에 집중하길 원했다. 이러한 테크닉 중 하나는 test를 유지하면서 쉽게 그것들을 바꿀 수 있도록 실제 object와 동일한 역할을 하는 가짜(또는 테스트를 위한) object를 만든 것이다. 가짜 object에 대해서 [Martin Fowler][33]가 쓴 [좋은 게시물][34]이 있다.
 
-넘어가기 전에, 테스트할 수 있고 재사용할 수 있는 class들을 작성하는데 [Dependency Injection](http://www.martinfowler.com/articles/injection.html)의 중요성에 대해 강조하고 싶다. 우리의 `AppMenuManager` class는 `MenuItem` object를 만들기 위해 `MenuItemsReader`과 `MenuItemBuilder` protocol을 따르는 두 개의 다른 class들의 함께 동작해야 한다. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
+넘어가기 전에, 테스트할 수 있고 재사용할 수 있는 class들을 작성하는데 [Dependency Injection][35]의 중요성에 대해 강조하고 싶다. 우리의 `AppMenuManager` class는 `MenuItem` object를 만들기 위해 `MenuItemsReader`과 `MenuItemBuilder` protocol을 따르는 두 개의 다른 class들의 함께 동작해야 한다. Had we not exposed these two dependencies via public properties, we would not have been able to pass in fake objects. Those fake objects came very handy while setting up the desired test scenarios in order to verify that `AppMenuManager` behaved as expected. Therefore, I recommend exposing every single dependency your classes have unless those dependencies are classes provided by Apple frameworks.
 
 <a name="putting_it_all_together"></a>
 Putting It All Together
@@ -1912,489 +1912,544 @@ Putting It All Together
 
 거의 다 왔다. Now that we have built every class, let's put them together in `AppDelegate`. But first we will write some tests to verify that  `AppDeleate` behaves as expected. *AppMenuTests* target에 이름이 `AppDelegateTests.swift`인 새로운 테스트 파일을 만든다. 다음의 test를 추가한다.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class AppDelegateTests: XCTestCase {
-    var window: UIWindow?
-    var navController: UINavigationController?
-    var appDelegate: AppDelegate?
-    var appMenuManager: AppMenuManager?
-    var didFinishLaunchingWithOptionsReturnValue: Bool?
-    
-    override func setUp() {
-        super.setUp()
-        
-        window = UIWindow()
-        navController = UINavigationController()
-        appMenuManager = AppMenuManager()
-        appDelegate = AppDelegate()
-        appDelegate?.window = window
-        appDelegate?.navController = navController
-    }
-    
-    func testRootVCForWindowIsNotSetIfMenuViewControllerCannotBeCreated() {
-        class FakeAppMenuManager: AppMenuManager {
-            override func menuViewController() -> MenuViewController? {
-                return nil
-            }
-        }
-
-        appDelegate?.appMenuManager = FakeAppMenuManager()
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-
-        XCTAssertNil(window!.rootViewController,
-        "Window's root VC shouldn't be set if menu VC can't be created")
-    }
-    
-    func testWindowHasRootViewControllerIfMenuViewControllerIsCreated() {
-        class FakeAppMenuManager: AppMenuManager {
-            override func menuViewController() -> MenuViewController? {
-                return MenuViewController()
-            }
-        }
-        
-        appDelegate?.appMenuManager = FakeAppMenuManager()
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-        XCTAssertEqual(window!.rootViewController, navController!,
-        "App delegate's nav controller should be the root view controller")
-    }
-    
-    func testMenuViewControllerIsRootVCForNavigationController() {
-        class FakeAppMenuManager: AppMenuManager {
-            override func menuViewController() -> MenuViewController? {
-                return MenuViewController()
-            }
-        }
-        
-        appDelegate?.appMenuManager = FakeAppMenuManager()        
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-        
-        let topViewController = 
-            appDelegate?.navController?.topViewController
-
-        XCTAssertTrue(topViewController is MenuViewController,
-            "Menu view controlelr is root VC for nav controller")
-    }
-    
-    func testWindowIsKeyAfterAppIsLaunched() {
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-        XCTAssertTrue(window!.keyWindow,
-            "App delegate's window should be the key window for the app")
-    }
-    
-    func testAppDidFinishLaunchingDelegateMethodAlwaysReturnsTrue() {
-        didFinishLaunchingWithOptionsReturnValue =
-            appDelegate?.application(nil, 
-                                     didFinishLaunchingWithOptions: nil)
-        
-        XCTAssertTrue(didFinishLaunchingWithOptionsReturnValue!,
-            "Did finish launching delegate method should return true")
-    }
+	var window: UIWindow?
+	var navController: UINavigationController?
+	var appDelegate: AppDelegate?
+	var appMenuManager: AppMenuManager?
+	var didFinishLaunchingWithOptionsReturnValue: Bool?
+	
+	override func setUp() {
+	    super.setUp()
+	
+	    window = UIWindow()
+	    navController = UINavigationController()
+	    appMenuManager = AppMenuManager()
+	    appDelegate = AppDelegate()
+	    appDelegate?.window = window
+	    appDelegate?.navController = navController
+	}
+	
+	func testRootVCForWindowIsNotSetIfMenuViewControllerCannotBeCreated() {
+	    class FakeAppMenuManager: AppMenuManager {
+	        override func menuViewController() -> MenuViewController? {
+	            return nil
+	        }
+	    }
+	
+	    appDelegate?.appMenuManager = FakeAppMenuManager()
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	
+	    XCTAssertNil(window!.rootViewController,
+	    "Window's root VC shouldn't be set if menu VC can't be created")
+	}
+	
+	func testWindowHasRootViewControllerIfMenuViewControllerIsCreated() {
+	    class FakeAppMenuManager: AppMenuManager {
+	        override func menuViewController() -> MenuViewController? {
+	            return MenuViewController()
+	        }
+	    }
+	
+	    appDelegate?.appMenuManager = FakeAppMenuManager()
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	    XCTAssertEqual(window!.rootViewController, navController!,
+	    "App delegate's nav controller should be the root view controller")
+	}
+	
+	func testMenuViewControllerIsRootVCForNavigationController() {
+	    class FakeAppMenuManager: AppMenuManager {
+	        override func menuViewController() -> MenuViewController? {
+	            return MenuViewController()
+	        }
+	    }
+	
+	    appDelegate?.appMenuManager = FakeAppMenuManager()        
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	
+	    let topViewController = 
+	        appDelegate?.navController?.topViewController
+	
+	    XCTAssertTrue(topViewController is MenuViewController,
+	        "Menu view controlelr is root VC for nav controller")
+	}
+	
+	func testWindowIsKeyAfterAppIsLaunched() {
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	    XCTAssertTrue(window!.keyWindow,
+	        "App delegate's window should be the key window for the app")
+	}
+	
+	func testAppDidFinishLaunchingDelegateMethodAlwaysReturnsTrue() {
+	    didFinishLaunchingWithOptionsReturnValue =
+	        appDelegate?.application(nil, 
+	                                 didFinishLaunchingWithOptions: nil)
+	
+	    XCTAssertTrue(didFinishLaunchingWithOptionsReturnValue!,
+	        "Did finish launching delegate method should return true")
+	}
 }
-~~~
+\~\~\~
 
 
-> [App Menu 관리하기](#managing_app_menu)에서, 진짜 menu builder를 위한 가짜 object가 필요하다고 알아차렸을 때 `MenuItemBuilder` protocol을 만들었다. 하지만, 여기에서는 내부적으로 test 자체의 가짜 app menu manager object들을 만든다. 이건 완벽하게 괜찮다. 진짜 app menu manager class에 있는 `menuViewController` method의 이름을 변경하기로 결정한 경우, Swift는 모든 우리의 가짜 object들의 이름도 새로운 method 이름을 사용하도록 강제할 것이다. 그 덕분에 모든 가짜 object들은 진짜 app menu manager와 동기화된다. test 내부에서 빠르게 가짜 object를 만들 때, 이 방법은 매우 유용하다.
+> [App Menu 관리하기][36]에서, 진짜 menu builder를 위한 가짜 object가 필요하다고 알아차렸을 때 `MenuItemBuilder` protocol을 만들었다. 하지만, 여기에서는 내부적으로 test 자체의 가짜 app menu manager object들을 만든다. 이건 완벽하게 괜찮다. 진짜 app menu manager class에 있는 `menuViewController` method의 이름을 변경하기로 결정한 경우, Swift는 모든 우리의 가짜 object들의 이름도 새로운 method 이름을 사용하도록 강제할 것이다. 그 덕분에 모든 가짜 object들은 진짜 app menu manager와 동기화된다. test 내부에서 빠르게 가짜 object를 만들 때, 이 방법은 매우 유용하다.
 
 새로운 Xcode project를 만들 때, `AppDelegate`는 *AppMenu* target에만 추가되어 있다. `AppMenuTests` target에도 잘 추가해야 한다. 그 후에 다음과 같이 내용을 변경한다:
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
-    var navController: UINavigationController?
-    var appMenuManager: AppMenuManager?
-
-    func application(application: UIApplication!,
-        didFinishLaunchingWithOptions launchOptions: NSDictionary!)
-        -> Bool
-    {
-        if window == nil {
-            window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        }
-        
-        let menuItemsPlistReader = MenuItemsPlistReader()
-        menuItemsPlistReader.plistToReadFrom = "menuItems"
-        
-        if appMenuManager == nil {
-            appMenuManager = AppMenuManager()
-        }
-
-        appMenuManager!.menuItemsReader = menuItemsPlistReader
-        appMenuManager!.menuItemBuilder = MenuItemDefaultBuilder()
-        
-        if let menuViewController = appMenuManager!.menuViewController() {
-            if navController == nil {
-                navController = UINavigationController()
-            }
-            
-            navController?.viewControllers = [menuViewController]
-            window!.rootViewController = navController!
-        }
-        
-        window!.makeKeyAndVisible()
-        return true
-    }
+	var window: UIWindow?
+	var navController: UINavigationController?
+	var appMenuManager: AppMenuManager?
+	
+	func application(application: UIApplication!,
+	    didFinishLaunchingWithOptions launchOptions: NSDictionary!)
+	    -> Bool
+	{
+	    if window == nil {
+	        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+	    }
+	
+	    let menuItemsPlistReader = MenuItemsPlistReader()
+	    menuItemsPlistReader.plistToReadFrom = "menuItems"
+	
+	    if appMenuManager == nil {
+	        appMenuManager = AppMenuManager()
+	    }
+	
+	    appMenuManager!.menuItemsReader = menuItemsPlistReader
+	    appMenuManager!.menuItemBuilder = MenuItemDefaultBuilder()
+	
+	    if let menuViewController = appMenuManager!.menuViewController() {
+	        if navController == nil {
+	            navController = UINavigationController()
+	        }
+	
+	        navController?.viewControllers = [menuViewController]
+	        window!.rootViewController = navController!
+	    }
+	
+	    window!.makeKeyAndVisible()
+	    return true
+	}
 }
-~~~
+\~\~\~
 
-`AppDelegate`에서 `AppMenuManager`를 설정하는 code를 추출하는 것이 좋다. We are going to apply what [Graham Lee](https://twitter.com/secboffin) taught us in [Test-Driven iOS Development](http://goo.gl/iiKpC1) here and create our own dependency injection class instead of using a full blown [depdendency injection framework](http://www.typhoonframework.org/). 적어도 지금은 App Menu는 간단한 app이다. 그래서 필요한 것이 아니면 dependency를 추가해서는 안된다. *AppMenuTests* target에 이름이 `ObjectConfiguratorTests.swift`인 새로운 test 파일을 만들고 다음의 내용으로 바꾸자.
+`AppDelegate`에서 `AppMenuManager`를 설정하는 code를 추출하는 것이 좋다. We are going to apply what [Graham Lee][37] taught us in [Test-Driven iOS Development][38] here and create our own dependency injection class instead of using a full blown [depdendency injection framework][39]. 적어도 지금은 App Menu는 간단한 app이다. 그래서 필요한 것이 아니면 dependency를 추가해서는 안된다. *AppMenuTests* target에 이름이 `ObjectConfiguratorTests.swift`인 새로운 test 파일을 만들고 다음의 내용으로 바꾸자.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class ObjectConfiguratorTests: XCTestCase {
-    var objectConfigurator: ObjectConfigurator?
-    
-    override func setUp() {
-        super.setUp()
-        objectConfigurator = ObjectConfigurator()
-    }
-    
-    func testConfiguresAppMenuManagerCorrectly() {
-        let appMenuManager = objectConfigurator?.appMenuManager()
-        XCTAssertNotNil(appMenuManager, "App menu manager is not nil")
-        
-        XCTAssertTrue(appMenuManager?.menuItemsReader != nil,
-            "App menu manager has a menu items reader")
-        XCTAssertTrue(appMenuManager?.menuItemBuilder != nil,
-            "App menu manager has a menu item builder")
-    }
+	var objectConfigurator: ObjectConfigurator?
+	
+	override func setUp() {
+	    super.setUp()
+	    objectConfigurator = ObjectConfigurator()
+	}
+	
+	func testConfiguresAppMenuManagerCorrectly() {
+	    let appMenuManager = objectConfigurator?.appMenuManager()
+	    XCTAssertNotNil(appMenuManager, "App menu manager is not nil")
+	
+	    XCTAssertTrue(appMenuManager?.menuItemsReader != nil,
+	        "App menu manager has a menu items reader")
+	    XCTAssertTrue(appMenuManager?.menuItemBuilder != nil,
+	        "App menu manager has a menu item builder")
+	}
 }
-~~~
+\~\~\~
 
 `ObjectConfigurator` class를 만들고 각 target에 추가한다. 다음의 내용으로 바꾸자.
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 class ObjectConfigurator {
-    func appMenuManager() -> AppMenuManager {
-        let appMenuManager = AppMenuManager()
-        let menuItemsPlistReader = MenuItemsPlistReader()
-        
-        menuItemsPlistReader.plistToReadFrom = "menuItems"
-        appMenuManager.menuItemsReader = menuItemsPlistReader
-        appMenuManager.menuItemBuilder = MenuItemDefaultBuilder()
-        
-        return appMenuManager
-    }
+	func appMenuManager() -> AppMenuManager {
+	    let appMenuManager = AppMenuManager()
+	    let menuItemsPlistReader = MenuItemsPlistReader()
+	
+	    menuItemsPlistReader.plistToReadFrom = "menuItems"
+	    appMenuManager.menuItemsReader = menuItemsPlistReader
+	    appMenuManager.menuItemBuilder = MenuItemDefaultBuilder()
+	
+	    return appMenuManager
+	}
 }
-~~~
+\~\~\~
 
 Instead of creating an `AppMenuManager` object itself, app delegate will tell the object configurator to do so. 새로운 접근법이 포함되도록 `AppDelegate`와 그의 test를 변경하자.
 
-~~~swift
+\~\~\~swift
 class FakeAppMenuManager: AppMenuManager {
-    override func menuViewController() -> MenuViewController? {
-        return MenuViewController()
-    }
+	override func menuViewController() -> MenuViewController? {
+	    return MenuViewController()
+	}
 }
 
 class FakeObjectConfigurator : ObjectConfigurator {
-    override func appMenuManager() -> AppMenuManager {
-        return FakeAppMenuManager()
-    }
+	override func appMenuManager() -> AppMenuManager {
+	    return FakeAppMenuManager()
+	}
 }
 
 class AppDelegateTests: XCTestCase {
-    var window: UIWindow?
-    var navController: UINavigationController?
-    var appDelegate: AppDelegate?
-    var objectConfigurator: ObjectConfigurator?
-    var didFinishLaunchingWithOptionsReturnValue: Bool?
-    
-    override func setUp() {
-        super.setUp()
-        window = UIWindow()
-        navController = UINavigationController()
-        appDelegate = AppDelegate()
-        appDelegate?.window = window
-        appDelegate?.navController = navController
-    }
-    
-    func testRootVCForWindowIsNotSetIfMenuViewControllerCannotBeCreated() {
-        class FakeAppMenuManager: AppMenuManager {
-            override func menuViewController() -> MenuViewController? {
-                return nil
-            }
-        }
-        
-        class FakeObjectConfigurator : ObjectConfigurator {
-            override func appMenuManager() -> AppMenuManager {
-                return FakeAppMenuManager()
-            }
-        }
-        
-        appDelegate?.objectConfigurator = FakeObjectConfigurator()
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-
-        XCTAssertNil(window!.rootViewController,
-        "Window's root VC shouldn't be set if menu VC can't be created")
-    }
-    
-    func testWindowHasRootViewControllerIfMenuViewControllerIsCreated() {
-        appDelegate?.objectConfigurator = FakeObjectConfigurator()
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-
-        XCTAssertEqual(window!.rootViewController, navController!,
-        "App delegate's nav controller should be the root VC")
-    }
-    
-    func testMenuViewControllerIsRootVCForNavigationController() {
-        appDelegate?.objectConfigurator = FakeObjectConfigurator()
-        appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
-        
-        let topViewController = 
-            appDelegate?.navController?.topViewController
-
-        XCTAssertTrue(topViewController is MenuViewController,
-            "Menu view controlelr is root VC for nav controller")
-    }
-
-    // ...
+	var window: UIWindow?
+	var navController: UINavigationController?
+	var appDelegate: AppDelegate?
+	var objectConfigurator: ObjectConfigurator?
+	var didFinishLaunchingWithOptionsReturnValue: Bool?
+	
+	override func setUp() {
+	    super.setUp()
+	    window = UIWindow()
+	    navController = UINavigationController()
+	    appDelegate = AppDelegate()
+	    appDelegate?.window = window
+	    appDelegate?.navController = navController
+	}
+	
+	func testRootVCForWindowIsNotSetIfMenuViewControllerCannotBeCreated() {
+	    class FakeAppMenuManager: AppMenuManager {
+	        override func menuViewController() -> MenuViewController? {
+	            return nil
+	        }
+	    }
+	
+	    class FakeObjectConfigurator : ObjectConfigurator {
+	        override func appMenuManager() -> AppMenuManager {
+	            return FakeAppMenuManager()
+	        }
+	    }
+	
+	    appDelegate?.objectConfigurator = FakeObjectConfigurator()
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	
+	    XCTAssertNil(window!.rootViewController,
+	    "Window's root VC shouldn't be set if menu VC can't be created")
+	}
+	
+	func testWindowHasRootViewControllerIfMenuViewControllerIsCreated() {
+	    appDelegate?.objectConfigurator = FakeObjectConfigurator()
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	
+	    XCTAssertEqual(window!.rootViewController, navController!,
+	    "App delegate's nav controller should be the root VC")
+	}
+	
+	func testMenuViewControllerIsRootVCForNavigationController() {
+	    appDelegate?.objectConfigurator = FakeObjectConfigurator()
+	    appDelegate?.application(nil, didFinishLaunchingWithOptions: nil)
+	
+	    let topViewController = 
+	        appDelegate?.navController?.topViewController
+	
+	    XCTAssertTrue(topViewController is MenuViewController,
+	        "Menu view controlelr is root VC for nav controller")
+	}
+	
+	// ...
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
-    var navController: UINavigationController?
-    var objectConfigurator: ObjectConfigurator?
-
-    func application(application: UIApplication!,
-        didFinishLaunchingWithOptions launchOptions: NSDictionary!)
-        -> Bool
-    {
-        if window == nil {
-            window = UIWindow(frame: UIScreen.mainScreen().bounds)
-        }
-        
-        if objectConfigurator == nil {
-            objectConfigurator = ObjectConfigurator()
-        }
-        
-        let appMenuManager = objectConfigurator?.appMenuManager()
-        if let menuViewController = appMenuManager!.menuViewController() {
-            if navController == nil {
-                navController = UINavigationController()
-            }
-            
-            navController?.viewControllers = [menuViewController]
-            window!.rootViewController = navController!
-        }
-        
-        window!.makeKeyAndVisible()
-        return true
-    }
+	var window: UIWindow?
+	var navController: UINavigationController?
+	var objectConfigurator: ObjectConfigurator?
+	
+	func application(application: UIApplication!,
+	    didFinishLaunchingWithOptions launchOptions: NSDictionary!)
+	    -> Bool
+	{
+	    if window == nil {
+	        window = UIWindow(frame: UIScreen.mainScreen().bounds)
+	    }
+	
+	    if objectConfigurator == nil {
+	        objectConfigurator = ObjectConfigurator()
+	    }
+	
+	    let appMenuManager = objectConfigurator?.appMenuManager()
+	    if let menuViewController = appMenuManager!.menuViewController() {
+	        if navController == nil {
+	            navController = UINavigationController()
+	        }
+	
+	        navController?.viewControllers = [menuViewController]
+	        window!.rootViewController = navController!
+	    }
+	
+	    window!.makeKeyAndVisible()
+	    return true
+	}
 }
-~~~
+\~\~\~
 
 `MenuViewController`로 관심을 돌려보자. 지금 모든 test를 통과해야 하지만 조금의 refactoring을 해야한다. Let's extract the code that decides which view controller should be the tap handler into a separate class. *AppMenuTests* target에 이름이 `MenuItemTapHandlerBuilderTests`인 새로운 test class를 만들고 다음의 내용으로 바꾸자.
 
-~~~swift
+\~\~\~swift
 import UIKit
 import XCTest
 
 class MenuItemTapHandlerBuilderTests: XCTestCase {
-    var tapHandlerBuilder: MenuItemTapHandlerBuilder?
-    var menuItem: MenuItem?
-
-    override func setUp() {
-        super.setUp()
-        tapHandlerBuilder = MenuItemTapHandlerBuilder()
-        menuItem = MenuItem(title: "Test menu item")
-    }
-    
-    func testReturnsContributionsVCForContributionsMenuItem() {
-        menuItem?.tapHandlerName = "ContributionsViewController"
-        let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
-        
-        XCTAssertTrue(tapHandler is ContributionsViewController,
-            "Contributions VC should handle contributions menu item tap")
-    }
-    
-    func testReturnsRepositoriesVCForRepositoriesMenuItem() {
-        menuItem?.tapHandlerName = "RepositoriesViewController"
-        let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
-        
-        XCTAssertTrue(tapHandler is RepositoriesViewController,
-            "Repositories VC should handle repositories menu item tap")
-    }
-    
-    func testReturnsPublicActivityVCForPublicActivityMenuItem() {
-        menuItem?.tapHandlerName = "PublicActivityViewController"
-        let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
-        
-        XCTAssertTrue(tapHandler is PublicActivityViewController,
-            "PublicActivity VC should handle public activity menu item tap")
-    }
-    
-    func testReturnsNilForAnyOtherMenuItem() {
-        menuItem?.tapHandlerName = "UnknownViewController"
-        let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
-
-        XCTAssertNil(tapHandler, 
-            "Tap handler is not built for an unkown menu item")
-    }
+	var tapHandlerBuilder: MenuItemTapHandlerBuilder?
+	var menuItem: MenuItem?
+	
+	override func setUp() {
+	    super.setUp()
+	    tapHandlerBuilder = MenuItemTapHandlerBuilder()
+	    menuItem = MenuItem(title: "Test menu item")
+	}
+	
+	func testReturnsContributionsVCForContributionsMenuItem() {
+	    menuItem?.tapHandlerName = "ContributionsViewController"
+	    let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
+	
+	    XCTAssertTrue(tapHandler is ContributionsViewController,
+	        "Contributions VC should handle contributions menu item tap")
+	}
+	
+	func testReturnsRepositoriesVCForRepositoriesMenuItem() {
+	    menuItem?.tapHandlerName = "RepositoriesViewController"
+	    let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
+	
+	    XCTAssertTrue(tapHandler is RepositoriesViewController,
+	        "Repositories VC should handle repositories menu item tap")
+	}
+	
+	func testReturnsPublicActivityVCForPublicActivityMenuItem() {
+	    menuItem?.tapHandlerName = "PublicActivityViewController"
+	    let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
+	
+	    XCTAssertTrue(tapHandler is PublicActivityViewController,
+	        "PublicActivity VC should handle public activity menu item tap")
+	}
+	
+	func testReturnsNilForAnyOtherMenuItem() {
+	    menuItem?.tapHandlerName = "UnknownViewController"
+	    let tapHandler = tapHandlerBuilder?.tapHandlerForMenuItem(menuItem)
+	
+	    XCTAssertNil(tapHandler, 
+	        "Tap handler is not built for an unkown menu item")
+	}
 }
-~~~
+\~\~\~
 
 이름이 `MenuItemTapHandlerBuilder`인 새로운 class를 만들어 test를 통과시키자. 각 target에 추가하고 다음의 내용으로 바꾸자.
 
-~~~swift
+\~\~\~swift
 import UIKit
 
 class MenuItemTapHandlerBuilder {
-    func tapHandlerForMenuItem(menuItem: MenuItem?) -> UIViewController? {
-        var tapHandler: UIViewController?
-        
-        if menuItem != nil {
-            switch menuItem!.tapHandlerName! {
-            case "ContributionsViewController":
-                tapHandler =
-                    ContributionsViewController(
-                        nibName: "ContributionsViewController",
-                        bundle: nil)
-                
-            case "RepositoriesViewController":
-                tapHandler =
-                    RepositoriesViewController(
-                        nibName: "RepositoriesViewController",
-                        bundle: nil)
-                
-            case "PublicActivityViewController":
-                tapHandler = PublicActivityViewController(
-                    nibName: "PublicActivityViewController",
-                    bundle: nil)
-                
-            default:
-                tapHandler = nil
-            }
-        }
-        
-        return tapHandler
-    }
+	func tapHandlerForMenuItem(menuItem: MenuItem?) -> UIViewController? {
+	    var tapHandler: UIViewController?
+	
+	    if menuItem != nil {
+	        switch menuItem!.tapHandlerName! {
+	        case "ContributionsViewController":
+	            tapHandler =
+	                ContributionsViewController(
+	                    nibName: "ContributionsViewController",
+	                    bundle: nil)
+	
+	        case "RepositoriesViewController":
+	            tapHandler =
+	                RepositoriesViewController(
+	                    nibName: "RepositoriesViewController",
+	                    bundle: nil)
+	
+	        case "PublicActivityViewController":
+	            tapHandler = PublicActivityViewController(
+	                nibName: "PublicActivityViewController",
+	                bundle: nil)
+	
+	        default:
+	            tapHandler = nil
+	        }
+	    }
+	
+	    return tapHandler
+	}
 }
-~~~
+\~\~\~
 
 Now that we have extracted the tap handler building code, we should inject `MenuItemTapHandlerBuilder` as a dependency to `MenuViewController`. In addition, let's leverage the depdency injection facility we have built to configure an instance of `MenuViewController` as well.
 
-~~~swift
+\~\~\~swift
 class MenuViewController: UIViewController {
-    // ...
-    var tapHandlerBuilder: MenuItemTapHandlerBuilder?
+	// ...
+	var tapHandlerBuilder: MenuItemTapHandlerBuilder?
+	
+	//...
+	func didSelectMenuItemNotification(notification: NSNotification?) {
+	    var menuItem: MenuItem? = notification!.object as? MenuItem
+	
+	    if let tapHandler = 
+	        tapHandlerBuilder?.tapHandlerForMenuItem(menuItem) {
+	        self.navigationController.pushViewController(tapHandler, 
+	                                                     animated: true)
+	    }
+	}
+\~\~\~
 
-    //...
-    func didSelectMenuItemNotification(notification: NSNotification?) {
-        var menuItem: MenuItem? = notification!.object as? MenuItem
-        
-        if let tapHandler = 
-            tapHandlerBuilder?.tapHandlerForMenuItem(menuItem) {
-            self.navigationController.pushViewController(tapHandler, 
-                                                         animated: true)
-        }
-    }
-~~~
-
-~~~swift
+\~\~\~swift
 class ObjectConfiguratorTests: XCTestCase {
-    // ...
-
-    func testConfiguresAppMenuManagerCorrectly() {
-        // ...
-        XCTAssertNotNil(appMenuManager?.objectConfigurator,
-            "App menu manager has an object configurator")
-    }
-
-    func testConfiguresMenuViewControllerCorrectly() {
-        let menuViewController = objectConfigurator?.menuViewController()
-
-        XCTAssertNotNil(menuViewController, 
-            "Menu view controller is not nil")
-
-        XCTAssertNotNil(menuViewController?.dataSource,
-            "Menu view controller has a data source")
-
-        XCTAssertNotNil(menuViewController?.tapHandlerBuilder,
-            "Menu view controller has a tap handler builder")
-    }
+	// ...
+	
+	func testConfiguresAppMenuManagerCorrectly() {
+	    // ...
+	    XCTAssertNotNil(appMenuManager?.objectConfigurator,
+	        "App menu manager has an object configurator")
+	}
+	
+	func testConfiguresMenuViewControllerCorrectly() {
+	    let menuViewController = objectConfigurator?.menuViewController()
+	
+	    XCTAssertNotNil(menuViewController, 
+	        "Menu view controller is not nil")
+	
+	    XCTAssertNotNil(menuViewController?.dataSource,
+	        "Menu view controller has a data source")
+	
+	    XCTAssertNotNil(menuViewController?.tapHandlerBuilder,
+	        "Menu view controller has a tap handler builder")
+	}
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class ObjectConfigurator {
-    func appMenuManager() -> AppMenuManager {
-        // ...
-        appMenuManager.objectConfigurator = self
-        return appMenuManager
-    }
-
-    func menuViewController() -> MenuViewController {
-        let menuViewController 
-            = MenuViewController(nibName: "MenuViewController",
-                                 bundle: nil)
-
-        menuViewController.dataSource = MenuTableDefaultDataSource()
-        menuViewController.tapHandlerBuilder = MenuItemTapHandlerBuilder()
-        
-        return menuViewController
-    }
+	func appMenuManager() -> AppMenuManager {
+	    // ...
+	    appMenuManager.objectConfigurator = self
+	    return appMenuManager
+	}
+	
+	func menuViewController() -> MenuViewController {
+	    let menuViewController 
+	        = MenuViewController(nibName: "MenuViewController",
+	                             bundle: nil)
+	
+	    menuViewController.dataSource = MenuTableDefaultDataSource()
+	    menuViewController.tapHandlerBuilder = MenuItemTapHandlerBuilder()
+	
+	    return menuViewController
+	}
 }
-~~~
+\~\~\~
 
-~~~swift
+\~\~\~swift
 class AppMenuManager {
-    // ...
-    var objectConfigurator: ObjectConfigurator? = nil
+	// ...
+	var objectConfigurator: ObjectConfigurator? = nil
+	
+	//...
+	private func menuViewControllerFromMenuItems(menuItems: [MenuItem]) 
+	    -> MenuViewController 
+	{
+	    let menuViewController = objectConfigurator?.menuViewController()
+	    let dataSource = menuViewController!.dataSource
+	    dataSource?.setMenuItems(menuItems)
+	
+	    return menuViewController!
+	}
+\~\~\~
 
-    //...
-    private func menuViewControllerFromMenuItems(menuItems: [MenuItem]) 
-        -> MenuViewController 
-    {
-        let menuViewController = objectConfigurator?.menuViewController()
-        let dataSource = menuViewController!.dataSource
-        dataSource?.setMenuItems(menuItems)
-        
-        return menuViewController!
-    }
-~~~
-
-~~~swift
+\~\~\~swift
 class AppMenuManagerTests: XCTestCase {
-    // ...
-    override func setUp() {
-        //...
-        menuManager?.objectConfigurator = ObjectConfigurator()        
-    }
+	// ...
+	override func setUp() {
+	    //...
+	    menuManager?.objectConfigurator = ObjectConfigurator()        
+	}
 }
-~~~
+\~\~\~
 
-app을 실행시켜보자(*Product > Run* or ⌘R). 각각의 menu item을 선택했을 때, app navigation stack에 적절한 view controller가 push 될 것이다. 최종 app design(아래에 나열된)은 초기의 design에서 크게 벗어나지 않았다. 그러나, 최종 design은 완전히 다른 것으로 진화하는 것이 충분히 가능하다.
+app을 실행시켜보자(*Product \> Run* or ⌘R). 각각의 menu item을 선택했을 때, app navigation stack에 적절한 view controller가 push 될 것이다. 최종 app design(아래에 나열된)은 초기의 design에서 크게 벗어나지 않았다. 그러나, 최종 design은 완전히 다른 것으로 진화하는 것이 충분히 가능하다.
 
-[![final_app_design.png](https://d23f6h5jpj26xu.cloudfront.net/3fmqoko8psjlrw.png)](http://img.svbtle.com/3fmqoko8psjlrw.png)
+[![final\_app\_design.png][image-5]][40]
 
 <a name="conclusion"></a>
 결말
 ===========
 
-이 post에서 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock](http://ocmock.org/)과 [Kiwi](https://github.com/kiwi-bdd/Kiwi) 같은 mocking library들의 부족에도 불구하고, fake object를 쉽게 만들고 그것을 test에 사용하는 것이 가능했다. Swift의 method 내부에서 class를 만드는 능력은 전문적인 가짜 object를 빠르게 만드는데 편리했다.
+이 post에서 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock][41]과 [Kiwi][42] 같은 mocking library들의 부족에도 불구하고, fake object를 쉽게 만들고 그것을 test에 사용하는 것이 가능했다. Swift의 method 내부에서 class를 만드는 능력은 전문적인 가짜 object를 빠르게 만드는데 편리했다.
 
-Swift는 완전히 새로운 언어임에도 불구하고, 이미 배웠던 Objective-C(또는 그 문제를 위한 어떤 다른 언어)에서의 test 기능을 위해 배웠을 기술들도 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리](#further_reading) section의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. design(그리고 test)에서 더 좋게 하는 유일한 방법은 그것을 더욱 많이 하는 것이다.
+Swift는 완전히 새로운 언어임에도 불구하고, 이미 배웠던 Objective-C(또는 그 문제를 위한 어떤 다른 언어)에서의 test 기능을 위해 배웠을 기술들도 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리][43] section의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. design(그리고 test)에서 더 좋게 하는 유일한 방법은 그것을 더욱 많이 하는 것이다.
 
-완성된 project는 [Github](https://github.com/pawanpoudel/AppMenu)에서 있다.
+완성된 project는 [Github][44]에서 있다.
 
 <a name="further_reading"></a>
 더 읽을거리
 ===============
 
-* [XCTest​Case / XCTest​Expectation / measure​Block()](http://nshipster.com/xctestcase/)
-* [Test-Driven iOS Development](http://goo.gl/iiKpC1)
-* [xUnit Test Patterns: Refactoring Test Code](http://goo.gl/HD4b3X)
-* [Practical Object Oriented Design in Ruby](http://goo.gl/bbzSpz)
+* [XCTest​Case / XCTest​Expectation / measure​Block()][45]
+* [Test-Driven iOS Development][46]
+* [xUnit Test Patterns: Refactoring Test Code][47]
+* [Practical Object Oriented Design in Ruby][48]
+
+[1]:	http://martinfowler.com/bliki/TestDrivenDevelopment.html
+[2]:	http://img.svbtle.com/aacqorrxf8wpiw.png
+[3]:	http://goo.gl/PNWoSw
+[4]:	https://twitter.com/mattt
+[5]:	http://nshipster.com/xctestcase/
+[6]:	http://goo.gl/YOK2kR
+[7]:	http://goo.gl/bbzSpz
+[8]:	http://goo.gl/U23sC8
+[9]:	http://en.wikipedia.org/wiki/Big_Design_Up_Front
+[10]:	http://img.svbtle.com/ttuxgmqb3ia.png
+[11]:	http://goo.gl/PU24UU
+[12]:	http://goo.gl/ptBqYR
+[13]:	#handling_menu_item_tap_event
+[14]:	http://refactoring.com/
+[15]:	http://img.svbtle.com/fqgfy5r3w7nkq.png
+[16]:	http://goo.gl/naf71B
+[17]:	http://goo.gl/9k9O5u
+[18]:	http://goo.gl/ucLgzF
+[19]:	http://goo.gl/VYcIen
+[20]:	http://goo.gl/akPPGh
+[21]:	http://goo.gl/WvUBDo
+[22]:	http://goo.gl/bbzSpz
+[23]:	http://www.objectmentor.com/resources/articles/srp.pdf
+[24]:	http://img.svbtle.com/9pmnjzuddxpv3g.png
+[25]:	http://goo.gl/iiKpC1
+[26]:	http://goo.gl/TfnJ3T
+[27]:	#building_menu_items
+[28]:	http://goo.gl/OeT0hV
+[29]:	#handling_menu_item_tap_event
+[30]:	http://nshipster.com/method-swizzling/
+[31]:	http://goo.gl/lL1Cwy
+[32]:	#building_menu_items
+[33]:	http://martinfowler.com/
+[34]:	http://martinfowler.com/articles/mocksArentStubs.html
+[35]:	http://www.martinfowler.com/articles/injection.html
+[36]:	#managing_app_menu
+[37]:	https://twitter.com/secboffin
+[38]:	http://goo.gl/iiKpC1
+[39]:	http://www.typhoonframework.org/
+[40]:	http://img.svbtle.com/3fmqoko8psjlrw.png
+[41]:	http://ocmock.org/
+[42]:	https://github.com/kiwi-bdd/Kiwi
+[43]:	#further_reading
+[44]:	https://github.com/pawanpoudel/AppMenu
+[45]:	http://nshipster.com/xctestcase/
+[46]:	http://goo.gl/iiKpC1
+[47]:	http://goo.gl/HD4b3X
+[48]:	http://goo.gl/bbzSpz
+
+[image-1]:	https://d23f6h5jpj26xu.cloudfront.net/aacqorrxf8wpiw.png
+[image-2]:	https://d23f6h5jpj26xu.cloudfront.net/ttuxgmqb3ia.png
+[image-3]:	https://d23f6h5jpj26xu.cloudfront.net/fqgfy5r3w7nkq.png
+[image-4]:	https://d23f6h5jpj26xu.cloudfront.net/9pmnjzuddxpv3g.png
+[image-5]:	https://d23f6h5jpj26xu.cloudfront.net/3fmqoko8psjlrw.png
