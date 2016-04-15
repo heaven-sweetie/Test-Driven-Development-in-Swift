@@ -19,9 +19,9 @@ Xcode 6에서 새로운 iOS 프로젝트를 만든다. *Single View Application*
 Identifying Domain Objects
 ==========================
 
-When I am starting on a new project, I often struggle to find the *first good* test to write. As a result, I resort to looking for domain objects which are usually easy to test. Our app menu will display information about each menu item for example, title, subtitle, and icon. We need an instance that stores information about a menu item. Let's call it `MenuItem`. We'll define what information a `MenuItem` instance contains through tests.
+새로운 프로젝트를 시작할 때, 나는 종종 작성할 *첫 번째 좋은* 테스트를 찾기 위해 노력한다. 그 결과, 나는 보통 테스트하기 쉬운 도메인 객체를 찾는데 의존한다. 우리의 앱 메뉴는 각 메뉴 항목에 대해 예를 들어, 제목, 부제목 및 아이콘 정보를 표시한다. 우리는 메뉴 항목에 대한 정보를 저장하는 인스턴스가 필요하다. 이것을 `MenuItem`이라고 하자. 우리는 테스트를 통해 `MenuItem` 인스턴스가 포함하는 정보를 정의한다.
 
-Create a new file named `MenuItemTests.swift` and place it under `AppMenuTests` group. Right click on `AppMenuTests` group and select *New File \> iOS \> Source \> Test Case Class* to create a new test class named `MenuItemTests`. Make it a subclass of `XCTestCase` and select Swift as the language. Delete everything in `MenuItemTests.swift` file except the class definition and import statements.
+`MenuItemTests.swift`라는 이름의 새로운 파일을 만들고 `AppMenuTests` 그룹 아래에 둔다. `AppMenuTests` 그룹에서 오른쪽 클릭을 하고 *New File \> iOS \> Source \> Test Case Class*를 선택해서 `MenuItemTests`라는 이름의 새로운 테스트 클래스를 만든다. `XCTestCase`의 서브클래스로 만들고 언어는 스위프트를 선택한다. 클래스 정의와 import 문을 제외하고 `MenuItemTests.swift` 파일의 모든 내용을 삭제한다.
 
 \~\~\~swift
 import UIKit
@@ -31,7 +31,7 @@ class MenuItemTests: XCTestCase {
 }
 \~\~\~
 
-Our first test will be to make sure that a menu item has a title. Add following test to the `MenuItemTests` class.
+우리의 첫 번째 테스트는 메뉴 항목의 제목이 있는지 확인하는 것이다. `MenuItemTests` 클래스에 다음의 테스트를 추가한다.
 
 \~\~\~swift
 func testThatMenuItemHasATitle() {
@@ -41,13 +41,13 @@ func testThatMenuItemHasATitle() {
 }
 \~\~\~
 
-In above test, we create an instance of `MenuItem`; give it a title; and verify that it holds onto that title by using the `XCTAssertEqual` assertion provided by XCTest framework that comes with Xcode. We are also (implicitly) specifying that `MenuItem` should provide an initializer that takes `title` as a parameter. When we write tests first, we tend to discover subtle details like this about our APIs.
+위의 테스트에서, 우리는 `MenuItem`의 인스턴스를 만들고; 제목을 넣고; Xcode에 있는 XCTest 프레임워크에서 제공하는 `XCTAssertEqual` 검증을 사용하여 제목을 가졌는지 확인한다. 우리는 또한 `MenuItem`이 `title`를 인자로 가지는 초기화 메서드를 제공해야 한다는 것을 (암묵적으로) 명시한다. 테스트를 먼저 작성할 때, 이렇게 우리의 API에 관한 미묘한 세부사항을 발견하는 경향이 있다.
 
-> XCTest provides [a number of assertions][11]. Each assertion allows you to pass a test description that explains what the test is about. I recommend you always provide this description.
+> XCTest는 [다수의 검증들][11]을 제공한다. 각각의 검증은 테스트에 관한 것을 설명하는 테스트 기술을 전달할 수 있다. 나는 항상 이 설명을 제공하는 것을 권한다.
 
-As things stand right now, we are not able to run the test. It doesn't even compile. We need to create `MenuItem`. Before we decide whether we should make `MenuItem` a struct or a class, I encourage you to read the [Choosing Between Classes and Structures][12] section from *The Swift Programming Language Guide* first. 
+현재 상태로는, 테스트를 실행할 수 없다. 심지어 컴파일되지 않는다. 우리는 `MenuItem`를 만들어야 한다. `MenuItem`를 구조체로 만들지 클래스로 만들지 결정하기 전에, 우선 *The Swift Programming Language Guide*에서 [Choosing Between Classes and Structures][12] 섹션을 읽어보길 권장한다.
 
-At a first glance, `struct` might seem sufficient here. However, in [Handling Menu Item Tap Event][13] section below we will need to store a menu item in a `NSNotification` object. `NSNotification` expects an object that needs to be stored in it to conform to `AnyObject` protocol. A `struct` type doesn't conform to `AnyObject`. Therefore, we need to make `MenuItem` a class. Create a new file named `MenuItem.swift` (*File \> New \> File \> iOS \> Source \> Swift File*). Add it to both *AppMenu* and *AppMenuTests* targets and replace its content with following.
+언뜻 보기에, `struct`가 여기에 충분해 보일 수 있다. 그러나, 아래의 [Handling Menu Item Tap Event][13] 섹션에서 우리는 `NSNotification` 객체에 메뉴 항목을 저장해야 한다. `NSNotification`는 저장하기 위해 `AnyObject` 프로토콜과 일치하는 객체를 요구한다. `struct` 타입은 `AnyObject`와 일치하지 않는다. 따라서, 우리는 class로 `MenuItem`을 만들어야 한다. `MenuItem.swift`라는 이름의 새로운 파일을 만든다 (*File \> New \> File \> iOS \> Source \> Swift File*). *AppMenu* 와 *AppMenuTests* 타깃 모두에 추가하고 다음과 같이 내용을 바꾼다.
 
 \~\~\~swift
 import Foundation
@@ -61,9 +61,9 @@ class MenuItem {
 }
 \~\~\~
 
-> You shouldn't have to add application classes into test targets, but there seems to be a bug in Xcode 6 that forces you to do so. Otherwise, you will get *use of unresolved identifier* error. If you receive that error in tests at any point in the future, you can fix it by adding the application class file to the test target as well. You can add a file to a target by clicking the *+* button from *Compile Sources* section in *Build Phases* tab.
+> 애플리케이션 클래스를 테스트 타깃으로 추가할 필요가 없지만, 그렇게 하도록 만드는 버그가 Xcode 6에 있는 것 같다. 그렇지 않으면, *해결되지 않은 식별자의 사용* 에러를 얻을 것이다. 앞으로 테스트의 어떤 지점에서 에러가 발생하면, 애플리케이션 클래스 파일을 테스트 타깃에도 추가하여 해결할 수 있다. *Build Phases* 탭의 *Compile Sources* 섹션에서 *+* 버튼을 눌러서 타깃에 파일을 추가할 수 있다.
 
-Run the test (*Product \> Test* or ⌘U). It should pass. Let's write a test for the subtitle property next.
+테스트를 실행한다 (*Product \> Test* 또는 ⌘U). 그것은 통과할 것이다. 다음으로 부제목 속성에 대한 테스트를 작성하자.
 
 \~\~\~swift
 func testThatMenuItemCanBeAssignedASubTitle() {
@@ -75,7 +75,7 @@ func testThatMenuItemCanBeAssignedASubTitle() {
 }
 \~\~\~
 
-It should pass after adding the `subTitle` property to `MenuItem` class.
+이것은 `MenuItem` 클래스에 `subTitle` 속성을 추가한 뒤에 통과할 것이다.
 
 \~\~\~swift
 class MenuItem {
@@ -88,7 +88,7 @@ class MenuItem {
 }
 \~\~\~
 
-Since a menu item must have a title, it's defined as a constant property. Whereas a `subTitle` is not required. Therefore, we define it as a variable property. Finally, here is a test for the `iconName` property:
+메뉴 항목은 제목을 가지고 있어야 하므로, 상수 속성으로 정의되어 있다. 반면 `subTitle`는 필수적이지 않다. 그러므로, 변수 속성으로 정의한다. 마지막으로, `iconName` 속성에 대한 테스트는 다음과 같다:
 
 \~\~\~swift
 func testThatMenuItemCanBeAssignedAnIconName() {
@@ -100,7 +100,7 @@ func testThatMenuItemCanBeAssignedAnIconName() {
 }
 \~\~\~
 
-It should pass by adding the `iconName` property to `MenuItem`.
+이것은 `MenuItem`에 `iconName` 속성을 추가한 뒤에 통과할 것이다.
 
 \~\~\~swift
 class MenuItem {
@@ -114,9 +114,9 @@ class MenuItem {
 }
 \~\~\~
 
-Before we move on, let's refactor our tests by moving the `MenuItem` creation code into `setup` method.
+넘어가기 전에, `MenuItem` 생성 코드를 `setup` 메서드로 이동하여 테스트를 리팩토링 하자.
 
-> It is a general practice in TDD to [refactor][14] once all tests are passing. The process of refactoring helps us improve design in small increments by organizing the code and tests better. It also helps us remove any duplication. This iterative process of writing a failing test first, making it pass with just enough code and improving the design before writing the next failing test is known as *red-green-refactor* cycle.
+> 모든 테스트가 통과했을 때 [리팩토링][14] 하는 것은 TDD에서 일반적인 방법이다. 리팩토링 과정은 더 나은 코드와 테스트를 구성하여 작은 단위로 디자인을 개선하는 데 도움이 된다. 그것은 또한 중복을 없앨 수 있도록 도와준다. 실패하는 테스트를 먼저 작성하고 그것을 통과하기에 충분한 코드를 만들고 다음 실패하는 테스트를 작성하기 전에 설계를 개선하는 이 반복되는 과정은 *red-green-refactor* 순환으로 알려져 있다.
 
 [![red\_green\_refactor.png][image-3]][15]
 
@@ -148,7 +148,7 @@ class MenuItemTests: XCTestCase {
 }
 \~\~\~
 
-XCTest calls the `setup` method before running each test. When a test is finished running, the variables assigned in `setup` method are set to `nil`. After that it creates brand new instances of objects and assigns them to those variables in `setup` method again. XCTest does this to isolate each test. We don't want any residual data created by previous tests affect the next ones. As XCTest automatically sets variables to `nil` when a test is finished running, we don't need to explicitly set them to `nil` in `tearDown` method (also provided by XCTest). That being said, if you need to do any cleanup other than setting variables to `nil`, you should do that in `tearDown` method.
+XCTest는 각 테스트를 실행하기 전에 `setup` 메서드를 호출한다. 테스트 실행이 완료되면, `setup` 메서드에서 할당된 변수는 `nil`로 설정된다. 객체의 새로운 인스턴스를 만들고 난 후에 다시 `setup` 메서드에서 해당 변수에 그것을 할당한다. XCTest는 각 테스트를 분리하기 위해 이렇게 한다. 우리는 이전 테스트에 의해 남은 데이터가 다음 테스트에 영향을 주는 것을 원하지 않는다. 테스트 실행이 완료될 때 XCTest가 자동적으로 변수에 `nil`로 설정하기 때문에, (마찬가지로 XCTest에서 제공하는) `tearDown` 메서드에서 명시적으로 그것들에 `nil`로 설정할 필요가 없다. 그러나, 변수에 `nil`을 설정하는 것 이외의 다른 정리 작업을 수행해야 할 경우, `tearDown` 메서드에서 해야 한다.
 
 <a name="reading_metadata_from_plist"></a>
 Reading Metadata from Plist
