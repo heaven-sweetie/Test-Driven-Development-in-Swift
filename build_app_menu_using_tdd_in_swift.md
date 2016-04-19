@@ -41,13 +41,13 @@ func testThatMenuItemHasATitle() {
 }
 \~\~\~
 
-위의 테스트에서, 우리는 `MenuItem`의 인스턴스를 만들고; 제목을 넣고; Xcode에 있는 XCTest 프레임워크에서 제공하는 `XCTAssertEqual` 검증을 사용하여 제목을 가졌는지 확인한다. 우리는 또한 `MenuItem`이 `title`를 인자로 가지는 초기화 메서드를 제공해야 한다는 것을 (암묵적으로) 명시한다. 테스트를 먼저 작성할 때, 이렇게 우리의 API에 관한 미묘한 세부사항을 발견하는 경향이 있다.
+위의 테스트에서, 우리는 `MenuItem`의 인스턴스를 만들고; 제목을 넣고; Xcode에 있는 XCTest 프레임워크에서 제공하는 `XCTAssertEqual` 검증을 사용하여 제목을 가졌는지 확인한다. 우리는 또한 `MenuItem`이 `title`를 매개변수로 가지는 초기화 메서드를 제공해야 한다는 것을 (암묵적으로) 명시한다. 테스트를 먼저 작성할 때, 이렇게 우리의 API에 관한 미묘한 세부사항을 발견하는 경향이 있다.
 
 > XCTest는 [다수의 검증들][11]을 제공한다. 각각의 검증은 테스트에 관한 것을 설명하는 테스트 기술을 전달할 수 있다. 나는 항상 이 설명을 제공하는 것을 권한다.
 
 현재 상태로는, 테스트를 실행할 수 없다. 심지어 컴파일되지 않는다. 우리는 `MenuItem`를 만들어야 한다. `MenuItem`를 구조체로 만들지 클래스로 만들지 결정하기 전에, 우선 *The Swift Programming Language Guide*에서 [Choosing Between Classes and Structures][12] 섹션을 읽어보길 권장한다.
 
-언뜻 보기에, `struct`가 여기에 충분해 보일 수 있다. 그러나, 아래의 [Handling Menu Item Tap Event][13] 섹션에서 우리는 `NSNotification` 객체에 메뉴 항목을 저장해야 한다. `NSNotification`는 저장하기 위해 `AnyObject` 프로토콜과 일치하는 객체를 요구한다. `struct` 타입은 `AnyObject`와 일치하지 않는다. 따라서, 우리는 class로 `MenuItem`을 만들어야 한다. `MenuItem.swift`라는 이름의 새로운 파일을 만든다 (*File \> New \> File \> iOS \> Source \> Swift File*). *AppMenu* 와 *AppMenuTests* 타깃 모두에 추가하고 다음과 같이 내용을 바꾼다.
+언뜻 보기에, `struct`가 여기에 충분해 보일 수 있다. 그러나, 아래의 [Handling Menu Item Tap Event][13] 섹션에서 우리는 `NSNotification` 객체에 메뉴 항목을 저장해야 한다. `NSNotification`는 저장하기 위해 `AnyObject` 프로토콜을 따르는 객체를 요구한다. `struct` 타입은 `AnyObject`을 따르지 않는다. 따라서, 우리는 class로 `MenuItem`을 만들어야 한다. `MenuItem.swift`라는 이름의 새로운 파일을 만든다 (*File \> New \> File \> iOS \> Source \> Swift File*). *AppMenu* 와 *AppMenuTests* 타깃 모두에 추가하고 다음과 같이 내용을 바꾼다.
 
 \~\~\~swift
 import Foundation
@@ -154,7 +154,7 @@ XCTest는 각 테스트를 실행하기 전에 `setup` 메서드를 호출한다
 Reading Metadata from Plist
 ===========================
 
-Next up we will read the metadata required to create `MenuItem` instances from a plist. As our initial design suggests, we will be storing the metadata for each menu item in a [plist][16] file. That way if we need to populate the menu dynamically by fetching the metadata from a remote server, we won't need to make too many changes as long as the metadata format remains the same. Before building `MenuItemsPlistReader` class, we need to know how the `MenuItemsReader` protocol looks like. Here is my initial pass at it:
+다음은 plist로 부터 `MenuItem` 인스턴스를 만들기 위해 필요한 메타데이터를 읽을 것이다. 우리의 초기 설계에서 알 수 있듯이, 우리는 [plist][16]파일에서 각 메뉴 항목에 대한 메타데이터를 저장할 것이다. 그렇게 하면 만약 원격 서버로부터 메타데이터를 가져와 동적으로 메뉴를 만들 필요가 있을 경우에도, 메타데이터 형식이 동일하게 유지되는 한 너무 많은 변경을 할 필요가 없다. `MenuItemsPlistReader` 클래스를 만들기 전에, 우리는 `MenuItemsReader` 프로토콜이 어떻게 생겼는지 알아야 한다. 초기 단계는 다음과 같다:
 
 \~\~\~swift
 import Foundation
@@ -164,9 +164,9 @@ protocol MenuItemsReader {
 }
 \~\~\~
 
-`readMenuItems` method doesn't take any parameters and returns a [tuple][17]. The first item in the tuple contains an array of [dictionaries][18] if the file was read successfully. The second item contains an [NSError][19] object if the file couldn't be read. `readMenuItems` is a required method. So any class that wants to conform to `MenuItemsReader` protocol, must implement it. Create a new file named `MenuItemsReader.swift`. Add it to both targets and then replace its content with the protocol definition code listed above.
+`readMenuItems` 메서드는 어떤 매개변수도 가지지 않고 [튜플][17]을 반환한다. 파일을 성공적으로 읽은 경우 튜플의 첫 번째 항목은 [딕셔너리][18] 배열을 포함하고 있다. 파일을 읽을 수 없는 경우 두 번째 항목은 [NSError][19] 객체가 포함되어 있다. `readMenuItems`는 필수 메서드다. 그래서 `MenuItemsReader` 프로토콜을 따르고자 하는 모든 클래스는 그것을 구현해야 한다. `MenuItemsReader.swift`라는 이름의 새로운 파일을 만든다. 두 타깃에 추가한 다음 위와 같이 프로토콜 정의 코드로 내용을 바꾼다.
 
-Let's read the metadata from a plist file next. We will write tests first. Create a new file named `MenuItemsPlistReaderTests.swift` in `AppMenuTests` target. Now that you know how to create a Swift test file, I will skip those instructions moving forward. Delete everything in `MenuItemsPlistReaderTests.swift` file except the class definition and import statements. Our first test will be to make sure that `MenuItemsPlistReader` returns an error if it can't read the specified plist file. Add following test to the `MenuItemsPlistReaderTests` class.
+다음에는 plist 파일에서 메타데이터를 읽어오자. 우리는 먼저 테스트를 작성할 것이다. `AppMenuTests` 타깃에 `MenuItemsPlistReaderTests.swift`라는 이름의 새로운 파일을 만든다. Now that you know how to create a 이제 Swift 테스트 파일을 어떻게 만드는지 알기 때문에, 앞으로 이러한 설명은 생략할 것이다. 클래스 정의와 import 문을 제외하고 `MenuItemsPlistReaderTests.swift` 파일의 모든 내용을 삭제한다. 우리의 첫 번째 테스트는 지정된 plist 파일을 읽을 수 없는 경우 `MenuItemsPlistReader`가 에러를 반환하는지 확인하는 것이다. `MenuItemsPlistReaderTests` 클래스에 다음 테스트를 추가한다.
 
 \~\~\~swift
 func testErrorIsReturnedWhenPlistFileDoesNotExist() {
@@ -178,7 +178,7 @@ func testErrorIsReturnedWhenPlistFileDoesNotExist() {
 }
 \~\~\~
 
-We create an instance of `MenuItemsPlistReader`; give it a non-existent plist file name to read from; and call `readMenuItems` method. Then we verify that it returns an error. To make the test pass, we need to create `MenuItemsPlistReader` class and add it to both targets. Replace its content with following.
+우리는 `MenuItemsPlistReader`의 인스턴스를 만들고; 읽어올 plist 파일이름을 존재하지 않는 것으로 지정하고; `readMenuItems` 메서드를 호출한다. 그런 다음 에러를 반환하는지 확인한다. 테스트를 통과하려면, 우리는 `MenuItemsPlistReader` 클래스를 만들고 두 타깃에 추가해야 한다. 다음과 같이 내용을 바꾼다.
 
 \~\~\~swift
 import Foundation
@@ -195,11 +195,11 @@ class MenuItemsPlistReader: MenuItemsReader {
 }
 \~\~\~
 
-Now run the test. It should pass. Although the test passes, something doesn't look right. `readMenuItems` doesn't even attempt to read the file. It always returns a tuple containing an empty array and not-so-useful error. This brings us to an important aspect of TDD: *write minimum code to pass the test*. Being disciplined about not writing anymore code than necessary to pass the tests is key to TDD. Therefore, we won't be fixing the simingly broken `readMenuItems` method unless our tests require us to do so.
+이제 테스트를 실행한다. 그것은 통과할 것이다. 테스트를 통과했지만, 뭔가 좋아 보이지 않는다. `readMenuItems`은 심지어 파일을 읽을 시도도 하지 않는다. 항상 빈 배열과 그다지 유용하지 않은 에러를 포함하는 튜플을 반환한다. 이것은 TDD의 중요한 측면을 우리에게 제시한다: *테스트를 통과하기 위해 최소한의 코드를 작성한다*. 테스트를 통과하기 위해 필요한 것보다 더 많은 코드를 작성하지 않도록 훈련하는 것이 TDD의 핵심이다. 그러므로, 우리는 테스트에 필요하지 않는 한 겉보기에는 불완전한 `readMenuItems` 메서드를 수정하지 않을 것이다.
 
-The only requirement we have defined for `MenuItemsPlistReader` class so far is that *it returns an error if the file doesn't exist*. We haven't specified what should be in that error object. Let's add a couple more tests to make sure the error contains the domain, code and description we are expecting.
+The only requirement we have defined for `MenuItemsPlistReader` class so far is that *it returns an error if the file doesn't exist*. 우리는 에러 객체에 무엇이 있어야 하는지 지정하지 않았다. 우리가 기대하는 도메인, 코드 그리고 설명이 에러에 포함되어 있는지 확인하는 몇 가지 테스트를 더 추가하자.
 
-> Apple [recommends][20] that we use NSError objects to capture information about runtime errors. These objects should contain the error *domain*, a domain-specific error *code*, and a *user info* dictionary containing the error *description*. You can add other details about the error in *user info* dictionary, for example what steps to take to resolve the error.
+> 애플은 런타임 에러에 대한 정보를 담기 위해 NSError 객체를 사용하는 것을 [추천한다][20]. 이러한 객체는 에러 *도메인*, 도메인 특정 에러 *코드*, 그리고 에러 *설명*을 포함하는 *user info* 딕셔너리가 들어있어야 한다. *user info* 딕셔너리 안에는 에러에 관한 다른 세부사항, 예를 들어 에러를 해결하기 위해 취할 수 있는 단계 같은 것을 추가할 수 있다.
 
 \~\~\~swift
 func testCorrectErrorDomainIsReturnedWhenPlistDoesNotExist() {
@@ -240,7 +240,7 @@ func testCorrectErrorDescriptionIsReturnedWhenPlistDoesNotExist() {
 }
 \~\~\~
 
-Following changes to `MenuItemsPlistReader` should make the above tests pass.
+`MenuItemsPlistReader`가 위의 테스트를 통과하도록 만들기 위해 다음과 같이 변경한다.
 
 \~\~\~swift
 import Foundation
@@ -269,7 +269,7 @@ class MenuItemsPlistReader: MenuItemsReader {
 }
 \~\~\~
 
-`readMenuItems` method still doesn't look right. Next tests we are going to write will force us not to cheat. Before we move forward, delete the test named `testErrorIsReturnedWhenPlistFileDoesNotExist`. It is made redundant by previous three tests.
+`readMenuItems` 메서드는 여전히 좋아 보이지 않는다. Next tests we are going to write will force us not to cheat. 넘어가기 전에, `testErrorIsReturnedWhenPlistFileDoesNotExist`라는 이름의 테스트를 삭제한다. 이것은 이전의 세 테스트와 중복된다.
 
 \~\~\~swift
 func testPlistIsDeserializedCorrectly() {
@@ -308,9 +308,9 @@ func testPlistIsDeserializedCorrectly() {
 
 Here we are making sure that `readMenuItems` method actually reads data from the specified plist file and creates proper objects from that data.
 
-> A rule of thumb while writing unit tests is not to include more than one assertion in a test method. I am violating that rule here, because it makes sense to verify that the data read from the file is correct in one place.
+> 유닛 테스트를 작성하는 동안 경험적인 규칙은 테스트 메서드에서 하나 이상의 검증을 포함하지 않는 것이다. 파일에서 읽은 데이터를 한 곳에서 올바른지 확인하는 것은 타당하기 때문에, 여기서 규칙을 위반하고 있다.
 
-To pass above test, create a file named "menuItems.plist" *(Right click AppMenu group \> New File \> iOS \> Resource \> Property List)*. Add it to both targets. Open that file in source code mode *(Right click the file in Xcode \> Open As \> Source Code)* and replace its content with following:
+위의 테스트를 통과하기 위해, "menuItems.plist”이라는 이름의 파일을 만든다 *(AppMenu 그룹을 오른쪽으로 클릭 \> New File \> iOS \> Resource \> Property List)*. 두 타깃에 추가한다. 소스 코드 모드에서 파일을 열고 *(Xcode에서 파일을 오른쪽으로 클릭 \> Open As \> Source Code)* 다음과 같이 내용을 바꾼다:
 
 \~\~\~xml
 \<?xml version="1.0" encoding="UTF-8"?\>
@@ -351,13 +351,13 @@ To pass above test, create a file named "menuItems.plist" *(Right click AppMenu 
 </plist>
 \~\~\~
 
-Next add following images to the asset catalog (Images.xcassets). They are included in the [finished project][21].
+어셋 카탈로그 (Images.xcassets)에 다음의 이미지를 추가한다. 그것들은 [완성된 프로젝트][21]에 포함되어 있다.
 
 * iconContributions@2x.png
 * iconRepositories@2x.png
 * iconPublicActivity@2x.png
 
-Now modify `readMenuItems` method as shown below:
+이제 아래 보이는 것과 같이 `readMenuItems` 메서드를 수정한다:
 
 \~\~\~swift
 func readMenuItems() -\> ([[String : String]]?, NSError?) {
@@ -386,7 +386,7 @@ func readMenuItems() -\> ([[String : String]]?, NSError?) {
 }
 \~\~\~
 
-Now that the tests are passing, let's refactor by extracting the error building code into a separate method. Here is how `readMenuItems` method looks like after refactoring:
+이제 테스트가 통과했으니, 별도의 메서드로 에러 생성 코드를 추출하여 리팩토링할 수 있다. `readMenuItems` 메서드를 리팩토링한 후의 모습이 여기 있다:
 
 \~\~\~swift
 func readMenuItems() -\> ([[String : String]]?, NSError?) {
@@ -419,7 +419,7 @@ func fileNotFoundError() -\> NSError {
 }
 \~\~\~
 
-Run the tests again (*⌘U*) to make sure that we didn't break anything. I see some refactoring opportunity with our tests as well. Let's move the common code from all tests into `setup` method.
+우리가 아무것도 부수지 않았음을 확인하기 위해 테스트를 다시 실행한다 (*⌘U*). 나는 우리의 테스트와 함께 약간의 리팩토링 기회도 확인했다. 모든 테스트에서 공통된 코드를 `setup` 메서드로 옮기자.
 
 \~\~\~swift
 class MenuItemsPlistReaderTests: XCTestCase {
@@ -493,7 +493,7 @@ class MenuItemsPlistReaderTests: XCTestCase {
 }
 \~\~\~
 
-I realized that we forgot to add a test for a scenario when the plist exists, but `readMenuItems` is unable to read it perhaps due to bad data. I will leave that as an exercise for you my dear readers.
+나는 우리가 plist가 존재하는 시나리오에 대한 테스트를 추가하는 것을 깜빡했다는 것을 깨달았지만, 그러나 `readMenuItems`는 잘못된 데이터 때문에 아마 그것을 읽을 수 없다. 나는 나의 소중한 독자들을 위한 연습으로 남겨둘 것이다.
 
 <a name="building_menu_items"></a>
 ### Building Menu Items
