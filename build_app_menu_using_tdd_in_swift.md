@@ -1,25 +1,26 @@
-이 블로그 게시물에서 우리는 스위프트로 [테스트 주도 개발][1]을 사용하여 간단한 iOS 앱 메뉴 (아래 그림 참조)를 작성하는 방법을 학습한다.
+이 블로그 게시물에서 우리는 스위프트로 [테스트 주도 개발][1]을 사용하여 간단한 iOS 앱 메뉴 (아래 그림 참조)를 작성하는 방법을 배울 것이다.
 [![app\_menu.png][image-1]][2]
-이 게시물에 제시된 개념을 완전히 이해하기 위해 알아야 할 사항은 다음과 같다:
+이 게시물에 제시된 개념을 완전히 이해하기 위해 알아야 할 몇가지 사항들이 있다:
 
 * Xcode 6
-* 스위프트 [기본 개념][3]에 익숙
-* UIKit 과 Foundation 에서 일반적으로 사용되는 클래스에 익숙 (예를 들어, UITableView 과 NSNotificationCenter)
-* XCTest에 익숙. 이전에 XCTest를 사용하지 않은 경우, [Matt Thompson’의][4] [블로그 게시물][5]에서 *XCTestCase* 섹션을 참조.
+* 스위프트 [기본 개념][3]에 대한 숙지
+* UIKit 과 Foundation 에서 일반적으로 사용되는 클래스에 대한 숙지 (예를 들어, UITableView 과 NSNotificationCenter)
+* XCTest에 대한 숙지. 이전에 XCTest를 사용해 본 적 없는 경우, [Matt Thompson의][4] [블로그 게시물][5]에서 *XCTestCase* 섹션을 참조.
 
-Xcode 6에서 새로운 iOS 프로젝트를 만든다. *Single View Application* 템플릿을 선택한다. Product Name은 *AppMenu*, language는 *Swift*, 그리고 Devices는 *iPhone*으로 한다. *Use Core Data* 옵션을 선택하지 않도록 한다. 이 실습에서 우리는 [Storyboards][6]를 사용하지 않는다. 그러므로 `Main.storyboard` 파일을 삭제한다. *AppMenu* 타깃의 *General* 탭 아래 *Deployment Info* 섹션에 위치한 *Main Interface* 드롭다운에 있는 스토리보드 이름 (Main)을 없애는 걸 잊지 않는다. 하는 김에, `ViewController.swift`와 `AppMenuTests.swift` 파일도 삭제하자. 그것들은 Xcode에 의해 만들어지고 우리는 그것들이 필요가 없다.
+Xcode 6에서 새로운 iOS 프로젝트를 만들자. *Single View Application* 템플릿을 선택한다. Product Name은 *AppMenu*, language는 *Swift* 를 선택하고, Devices는 *iPhone*을 선택한다.. *Use Core Data* 옵션을 선택하지 않도록 한다. 이 실습에서 우리는 [Storyboards][6]를 사용하지 않는다. 그러므로 `Main.storyboard` 파일을 삭제한다. *AppMenu* 타깃의 *General* 탭 아래 *Deployment Info* 섹션에 위치한 *Main Interface* 드롭다운에 있는 스토리보드 이름 (Main)을 없애는 걸 잊지 말자. 하는 김에, `ViewController.swift`와 `AppMenuTests.swift` 파일도 삭제하자. 그것들은 Xcode에 의해 만들어지고 우리는 그것들이 필요가 없다.
 
-우리가 테스트 주도 개발 (TDD)의 아름다운 여행을 시작하기 전에, 한 걸음 뒤로 물러나 앱의 설계에 대해 조금 생각해보자. TDD는 테스트 활동보다 디자인 연습이라고 더 많이 들었을 수도 있다. 그렇다면, 당신은 올바르게 들었다. TDD는 테스트를 통해 존재하기도 전에 코드를 사용하도록 강요함으로써 우리가 테스트 중인 클래스가 응용 프로그램 코드의 나머지 부분과 상호 작용하는 방법에 대해 생각하도록 한다. 이러한 코드를 사용하는 행위는 우리가 재사용 가능한 클래스와 사용하기 쉬운 응용 프로그램 프로그래밍 인터페이스(API)의 생성으로 이어지는 (좋은) 디자인 결정을 내릴 수 있게 한다. 그러나, 테스트를 먼저 쓰는 것으로 응용 프로그램을 만드는 것이 항상 잘 설계된다고 보장할 수는 없다. 우리는 여전히 테스트를 먼저 작성하는 것 외에도 좋은 디자인 [원칙][7]과 [패턴][8]을 적용해야 한다.
+우리가 테스트 주도 개발 (이하 TDD)의 아름다운 여행을 시작하기 전에, 한 걸음 뒤로 물러나 앱의 설계에 대해 조금 생각해보자. TDD는 테스트 활동보다 설계 연습에 더 가깝다고 들었을 지도 모른다. 그렇다면, 당신은 올바르게 들은 것이다. TDD는 테스트를 통해 존재하기도 전에 코드를 사용하도록 강제함으로써 우리가 테스트 중인 클래스가 응용 프로그램 코드의 나머지 부분과 상호 작용하는 방법에 대해 생각하도록 한다. 이러한 코드를 사용하는 행위는 우리가 재사용 가능한 클래스와 사용하기 쉬운 애플리케이션 프로그래밍 인터페이스(API)의 생성으로 이어지는 (좋은) 디자인 결정을 내릴 수 있게 한다. 그러나, 테스트를 먼저 쓰는 것으로 응용 프로그램을 만드는 것이 항상 잘 설계된다고 보장할 수는 없다. 우리는 여전히 테스트를 먼저 작성하는 것 외에도 좋은 디자인 [원칙][7]과 [패턴][8]을 적용해야 한다.
 
-아래 그림은 우리가 목표로 하는 초기 디자인을 보여준다. 우리가 [Big Up Front Design][9] (BUFD) 영역에 들어간다고 걱정할 수도 있지만, 두려워 마라. 아래의 설계는 우리에게 시작점을 준다. 우리는 아직 앱의 모든 면을 생각하지 않았다. 예를 들어, 우리는 각 클래스의 공개 API가 어떤 모습으로 보여질지 모른다. 우리는 응용 프로그램을 만드는 절차를 통해, 아래의 디자인을 완전히 변경해야 한다는 것과 그것이 완벽하게 괜찮은 것을 깨닫게 될 수 있다.
+아래 그림은 우리가 목표로 하는 초기 디자인을 보여준다. 우리가 [Big Up Front Design][9] (BUFD) 영역을 침범한다고 걱정할 수도 있지만, 두려워 하지 마라. 아래의 설계는 우리에게 시작점을 준다. 우리는 아직 앱의 모든 면을 생각하지 않았다. 예를 들어, 우리는 각 클래스의 공개 API가 어떤 모습으로 보여질지 모른다. 우리는 앱을 만들어 가며, 아래의 디자인을 완전히 변경해야 한다고 생각할 수도, 그것이 완벽하게 괜찮았다고 생각할 수도 있다.
 
 [![initial\_app\_design.png][image-2]][10]
 
 <a name="identifying_domain_objects"></a>
-Identifying Domain Objects
+
+## Identifying Domain Objects
 ==========================
 
-새로운 프로젝트를 시작할 때, 나는 종종 작성할 *첫 번째 좋은* 테스트를 찾기 위해 노력한다. 그 결과, 나는 보통 테스트하기 쉬운 도메인 객체를 찾는데 의존한다. 우리의 앱 메뉴는 각 메뉴 항목에 대해 예를 들어, 제목, 부제목 및 아이콘 정보를 표시한다. 우리는 메뉴 항목에 대한 정보를 저장하는 인스턴스가 필요하다. 이것을 `MenuItem`이라고 하자. 우리는 테스트를 통해 `MenuItem` 인스턴스가 포함하는 정보를 정의한다.
+새로운 프로젝트를 시작할 때, 나는 종종 작성할 *첫 번째 좋은* 테스트를 찾으려고 노력한다. 그 결과, 나는 보통 테스트하기 쉬운 도메인 객체를 찾는데 의존한다. 우리의 앱 메뉴는 각 메뉴 항목에 대해 예를 들어, 제목, 부제목 및 아이콘 정보를 표시한다. 우리는 메뉴 항목에 대한 정보를 저장하는 인스턴스가 필요하다. 이것을 `MenuItem`이라고 하자. 우리는 테스트를 통해 `MenuItem` 인스턴스가 포함 할 정보를 정의할 것이다.
 
 `MenuItemTests.swift`라는 이름의 새로운 파일을 만들고 `AppMenuTests` 그룹 아래에 둔다. `AppMenuTests` 그룹에서 오른쪽 클릭을 하고 *New File \> iOS \> Source \> Test Case Class*를 선택해서 `MenuItemTests`라는 이름의 새로운 테스트 클래스를 만든다. `XCTestCase`의 서브클래스로 만들고 언어는 스위프트를 선택한다. 클래스 정의와 import 문을 제외하고 `MenuItemTests.swift` 파일의 모든 내용을 삭제한다.
 
@@ -31,7 +32,7 @@ class MenuItemTests: XCTestCase {
 }
 \~\~\~
 
-우리의 첫 번째 테스트는 메뉴 항목의 제목이 있는지 확인하는 것이다. `MenuItemTests` 클래스에 다음의 테스트를 추가한다.
+우리의 첫 번째 테스트는 메뉴 아이템이 제목을 갖고 있는지 확인하는 것이다. `MenuItemTests` 클래스에 다음의 테스트를 추가하자.
 
 \~\~\~swift
 func testThatMenuItemHasATitle() {
@@ -43,11 +44,11 @@ func testThatMenuItemHasATitle() {
 
 위의 테스트에서, 우리는 `MenuItem`의 인스턴스를 만들고; 제목을 넣고; Xcode에 있는 XCTest 프레임워크에서 제공하는 `XCTAssertEqual` 검증을 사용하여 제목을 가졌는지 확인한다. 우리는 또한 `MenuItem`이 `title`를 매개변수로 가지는 초기화 메서드를 제공해야 한다는 것을 (암묵적으로) 명시한다. 테스트를 먼저 작성할 때, 이렇게 우리의 API에 관한 미묘한 세부사항을 발견하는 경향이 있다.
 
-> XCTest는 [다수의 검증들][11]을 제공한다. 각각의 검증은 테스트에 관한 것을 설명하는 테스트 기술을 전달할 수 있다. 나는 항상 이 설명을 제공하는 것을 권한다.
+> XCTest는 [다수의 검증들][11]을 제공한다. 각각의 검증은 테스트에 관한 것을 설명하는 테스트 명세를 명시할 수 있다. 나는 항상 이 명세를 제공하는 것을 권한다.
 
-현재 상태로는, 테스트를 실행할 수 없다. 심지어 컴파일되지 않는다. 우리는 `MenuItem`를 만들어야 한다. `MenuItem`를 구조체로 만들지 클래스로 만들지 결정하기 전에, 우선 *The Swift Programming Language Guide*에서 [Choosing Between Classes and Structures][12] 섹션을 읽어보길 권장한다.
+현재 상태로는, 테스트를 실행할 수 없다. 심지어 컴파일도 되지 않는다. 우리는 `MenuItem`를 만들어야 한다. `MenuItem`을 구조체로 만들지 클래스로 만들지 결정하기 전에, 우선 *The Swift Programming Language Guide*에서 [Choosing Between Classes and Structures][12] 섹션을 읽어보길 권장한다.
 
-언뜻 보기에, `struct`가 여기에 충분해 보일 수 있다. 그러나, 아래의 [Handling Menu Item Tap Event][13] 섹션에서 우리는 `NSNotification` 객체에 메뉴 항목을 저장해야 한다. `NSNotification`는 저장하기 위해 `AnyObject` 프로토콜을 따르는 객체를 요구한다. `struct` 타입은 `AnyObject`을 따르지 않는다. 따라서, 우리는 class로 `MenuItem`을 만들어야 한다. `MenuItem.swift`라는 이름의 새로운 파일을 만든다 (*File \> New \> File \> iOS \> Source \> Swift File*). *AppMenu* 와 *AppMenuTests* 타깃 모두에 추가하고 다음과 같이 내용을 바꾼다.
+언뜻 보기에, 여기서는 `struct`가 충분해 보일 수 있다. 그러나, 아래의 [Handling Menu Item Tap Event][13] 섹션에서 우리는 `NSNotification` 객체에 메뉴 항목을 저장해야 한다. `NSNotification`는 저장하기 위해 `AnyObject` 프로토콜을 따르는 객체를 요구한다. `struct` 타입은 `AnyObject`을 따르지 않는다. 따라서, 우리는 `MenuItem`을 class로 만들어야 한다. `MenuItem.swift`라는 이름의 새로운 파일을 만든다 (*File \> New \> File \> iOS \> Source \> Swift File*). *AppMenu* 와 *AppMenuTests* 타깃 모두에 추가하고 다음과 같이 내용을 바꾼다.
 
 \~\~\~swift
 import Foundation
@@ -63,7 +64,7 @@ class MenuItem {
 
 > 애플리케이션 클래스를 테스트 타깃으로 추가할 필요가 없지만, 그렇게 하도록 만드는 버그가 Xcode 6에 있는 것 같다. 그렇지 않으면, *해결되지 않은 식별자의 사용* 에러를 얻을 것이다. 앞으로 테스트의 어떤 지점에서 에러가 발생하면, 애플리케이션 클래스 파일을 테스트 타깃에도 추가하여 해결할 수 있다. *Build Phases* 탭의 *Compile Sources* 섹션에서 *+* 버튼을 눌러서 타깃에 파일을 추가할 수 있다.
 
-테스트를 실행한다 (*Product \> Test* 또는 ⌘U). 그것은 통과할 것이다. 다음으로 부제목 속성에 대한 테스트를 작성하자.
+테스트를 실행한다 (*Product \> Test* 또는 ⌘U). 통과할 것이다. 다음으로 부제목 속성에 대한 테스트를 작성하자.
 
 \~\~\~swift
 func testThatMenuItemCanBeAssignedASubTitle() {
@@ -88,7 +89,7 @@ class MenuItem {
 }
 \~\~\~
 
-메뉴 항목은 제목을 가지고 있어야 하므로, 상수 속성으로 정의되어 있다. 반면 `subTitle`는 필수적이지 않다. 그러므로, 변수 속성으로 정의한다. 마지막으로, `iconName` 속성에 대한 테스트는 다음과 같다:
+메뉴 항목은 제목을 반드시 가지고 있어야 하므로, 상수 속성으로 정의되어 있다. 반면 `subTitle`는 필수가 아니다. 그러므로, 변수 속성으로 정의한다. 마지막으로, `iconName` 속성에 대한 테스트는 다음과 같다:
 
 \~\~\~swift
 func testThatMenuItemCanBeAssignedAnIconName() {
@@ -116,7 +117,7 @@ class MenuItem {
 
 넘어가기 전에, `MenuItem` 생성 코드를 `setup` 메서드로 이동하여 테스트를 리팩토링 하자.
 
-> 모든 테스트가 통과했을 때 [리팩토링][14] 하는 것은 TDD에서 일반적인 방법이다. 리팩토링 과정은 더 나은 코드와 테스트를 구성하여 작은 단위로 디자인을 개선하는 데 도움이 된다. 그것은 또한 중복을 없앨 수 있도록 도와준다. 실패하는 테스트를 먼저 작성하고 그것을 통과하기에 충분한 코드를 만들고 다음 실패하는 테스트를 작성하기 전에 설계를 개선하는 이 반복되는 과정은 *red-green-refactor* 순환으로 알려져 있다.
+> 모든 테스트가 통과했을 때 [리팩토링][14] 하는 것은 TDD에서 일반적인 방법이다. 리팩토링 과정은 더 나은 코드와 테스트를 구성하여 작은 단위로 설계를 개선하는 데 도움이 된다. 또한, 리팩토링은 중복을 없앨 수 있도록 도와준다. 실패하는 테스트를 먼저 작성하고 그것을 통과하기에 충분한 코드를 만들고 다음 실패하는 테스트를 작성하기 전에 설계를 개선하는 이 반복되는 과정은 *red-green-refactor* 순환으로 알려져 있다.
 
 [![red\_green\_refactor.png][image-3]][15]
 
@@ -151,7 +152,7 @@ class MenuItemTests: XCTestCase {
 XCTest는 각 테스트를 실행하기 전에 `setup` 메서드를 호출한다. 테스트 실행이 완료되면, `setup` 메서드에서 할당된 변수는 `nil`로 설정된다. 객체의 새로운 인스턴스를 만들고 난 후에 다시 `setup` 메서드에서 해당 변수에 그것을 할당한다. XCTest는 각 테스트를 분리하기 위해 이렇게 한다. 우리는 이전 테스트에 의해 남은 데이터가 다음 테스트에 영향을 주는 것을 원하지 않는다. 테스트 실행이 완료될 때 XCTest가 자동적으로 변수에 `nil`로 설정하기 때문에, (마찬가지로 XCTest에서 제공하는) `tearDown` 메서드에서 명시적으로 그것들에 `nil`로 설정할 필요가 없다. 그러나, 변수에 `nil`을 설정하는 것 이외의 다른 정리 작업을 수행해야 할 경우, `tearDown` 메서드에서 해야 한다.
 
 <a name="reading_metadata_from_plist"></a>
-Reading Metadata from Plist
+## Reading Metadata from Plist
 ===========================
 
 다음은 plist로 부터 `MenuItem` 인스턴스를 만들기 위해 필요한 메타데이터를 읽을 것이다. 우리의 초기 설계에서 알 수 있듯이, 우리는 [plist][16]파일에서 각 메뉴 항목에 대한 메타데이터를 저장할 것이다. 그렇게 하면 만약 원격 서버로부터 메타데이터를 가져와 동적으로 메뉴를 만들 필요가 있을 경우에도, 메타데이터 형식이 동일하게 유지되는 한 너무 많은 변경을 할 필요가 없다. `MenuItemsPlistReader` 클래스를 만들기 전에, 우리는 `MenuItemsReader` 프로토콜이 어떻게 생겼는지 알아야 한다. 초기 단계는 다음과 같다:
