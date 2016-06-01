@@ -2182,7 +2182,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 \~\~\~
 
-`MenuViewController`로 관심을 돌려보자. 지금 모든 테스트가 통과되고 있지만, 약간 리팩토링을 해야 한다. Let's extract the code that decides which view controller should be the tap handler into a separate class. *AppMenuTests* 타겟에  `MenuItemTapHandlerBuilderTests`라는 이름의 새로운 테스트 클래스를 만들고 다음의 내용으로 바꾸자.
+`MenuViewController`로 관심을 돌려보자. 지금 모든 테스트가 통과되고 있지만, 약간 리팩토링을 해야 한다. 나누어져 있는 클래스의 탭 핸들러를 어떤 뷰컨트롤러가 해야할지 결정하는 코드를 추출하자. *AppMenuTests* 타겟에  `MenuItemTapHandlerBuilderTests`라는 이름의 새로운 테스트 클래스를 만들고 다음의 내용으로 바꾸자.
 
 \~\~\~swift
 import UIKit
@@ -2232,7 +2232,7 @@ class MenuItemTapHandlerBuilderTests: XCTestCase {
 }
 \~\~\~
 
-이름이 `MenuItemTapHandlerBuilder`인 새로운 class를 만들어 test를 통과시키자. 각 target에 추가하고 다음의 내용으로 바꾸자.
+`MenuItemTapHandlerBuilder`라는 이름의 새로운 클래스를 만들어 테스트를 통과시키도록 하자. 두 타겟에 추가하고 내용을 다음과 같이 바꾸자.
 
 \~\~\~swift
 import UIKit
@@ -2270,7 +2270,7 @@ class MenuItemTapHandlerBuilder {
 }
 \~\~\~
 
-Now that we have extracted the tap handler building code, we should inject `MenuItemTapHandlerBuilder` as a dependency to `MenuViewController`. In addition, let's leverage the depdency injection facility we have built to configure an instance of `MenuViewController` as well.
+Now that we have extracted the tap handler building code, we should inject `MenuItemTapHandlerBuilder` as a dependency to `MenuViewController`. In addition, let's leverage the depdency injection facility we have built to configure an instance of `MenuViewController` as well.
 
 \~\~\~swift
 class MenuViewController: UIViewController {
@@ -2362,19 +2362,17 @@ class AppMenuManagerTests: XCTestCase {
 }
 \~\~\~
 
-app을 실행시켜보자(*Product \> Run* or ⌘R). 각각의 menu item을 선택했을 때, app navigation stack에 적절한 view controller가 push 될 것이다. 최종 app design(아래에 나열된)은 초기의 design에서 크게 벗어나지 않았다. 그러나, 최종 design은 완전히 다른 것으로 진화하는 것이 충분히 가능하다.
+app을 실행시켜보자(*Product \> Run* or ⌘R). 각각의 메뉴 아이템을 탭했을 때, 앱 내비게이션 스택에 적절한 뷰컨트롤러가 푸시(push) 될 것이다. 최종 앱 설계(아래에 나열된)는 초기의 설계에서 크게 벗어나지 않았다. 그러나, 최종 설계가 완전히 다른 것으로 진화하는 것은 충분히 가능한 일이다.
 
 [![final\_app\_design.png][image-29]][89]
 
-<a name="conclusion"></a>
 ## 결말
 ===========
 
-이 post에서 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock][90]과 [Kiwi][91] 같은 mocking library들의 부족에도 불구하고, fake object를 쉽게 만들고 그것을 test에 사용하는 것이 가능했다. Swift의 method 내부에서 class를 만드는 능력은 전문적인 가짜 object를 빠르게 만드는데 편리했다.
+이 포스트에서 우리는 TDD를 활용한 간단한 iOS app을 만드는 법에 대해서 배웠다. Xcode 6 beta는 이 글을 쓰는동안 약간 불안정했지만, XCTest 자체는 상당히 안정적으로 보였다. [OCMock][90]과 [Kiwi][91] 같은 mocking library들의 부족에도 불구하고, 가짜 객체를 쉽게 만들고 그것을 테스트에 사용하는 것이 가능했다. Swift의 매서드 내부에서 클래스를 만드는 능력은 특화된 가짜 객체를 빠르게 만드는데 편리했다.
+당신이 과거에 Objective-C(또는 그 문제를 위한 다른 언어)에서 기능을 테스트하기 위해 배웠을 기술들을 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리][92] 섹션의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. 더 나은 설계(그리고 테스트)를 위한 유일한 방법은 그걸 더 많이 하는 것이다
 
-Swift는 완전히 새로운 언어임에도 불구하고, 이미 배웠던 Objective-C(또는 그 문제를 위한 어떤 다른 언어)에서의 test 기능을 위해 배웠을 기술들도 여전히 Swift에서 적용할 수 있다. 이 post에서 Test-Driven Development를 겉핥기만 했다.나는 TDD의 깊이있는 이해를 위해 [더 읽을거리][92] section의 참고자료를 읽을 것을 권장한다. 당신의 다음 iOS app에서 TDD를 시도하기를 바란다. design(그리고 test)에서 더 좋게 하는 유일한 방법은 그것을 더욱 많이 하는 것이다.
-
-완성된 project는 [Github][93]에서 있다.
+완성된 project는 [Github][93]에 있다.
 
 <a name="further_reading"></a>
 더 읽을거리
