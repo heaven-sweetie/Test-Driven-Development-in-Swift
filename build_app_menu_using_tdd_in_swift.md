@@ -2270,7 +2270,7 @@ class MenuItemTapHandlerBuilder {
 }
 \~\~\~
 
-Now that we have extracted the tap handler building code, we should inject `MenuItemTapHandlerBuilder` as a dependency to `MenuViewController`. In addition, let's leverage the depdency injection facility we have built to configure an instance of `MenuViewController` as well.
+이제 우리는 탭 핸들러를 만드는 코드를 추출했고, 우리는 `MenuViewController`에 종속성으로 `MenuItemTapHandlerBuilder`를 삽입해야 한다. 게다가(or 또한), `MenuViewController`의 인스턴스에 대한 구성을 만드는데도 의존성 주입 기술을 활용하자.
 
 \~\~\~swift
 class MenuViewController: UIViewController {
